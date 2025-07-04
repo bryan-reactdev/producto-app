@@ -8,6 +8,9 @@ const bwipjs = require('bwip-js');
 const Product = require('../models/Product');
 const PDFDocument = require('pdfkit');
 
+// Set up API URL from environment or use default
+const API_URL = process.env.API_URL || 'http://192.168.3.12:3000';
+
 const router = express.Router();
 
 // Configure multer for file uploads
@@ -79,34 +82,7 @@ router.post('/', productController.createProduct);
 router.put('/:id', productController.updateProduct);
 
 // DELETE /api/products/:id - Delete a product
-router.delete('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    // Check if product exists
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    // Delete the product
-    await Product.delete(id);
-    
-    // If product had an image, delete it from storage
-    if (product.image_url) {
-      const filename = product.image_url.split('/').pop();
-      const filePath = path.join(__dirname, '../uploads', filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
-
-    res.json({ success: true, message: 'Product deleted successfully' });
-  } catch (error) {
-    console.error('Delete product error:', error);
-    res.status(500).json({ error: 'Error deleting product' });
-  }
-});
+router.delete('/:id', productController.deleteProduct);
 
 // GET /api/products/:id/barcode - Get barcode image for product
 router.get('/:id/barcode', async (req, res) => {
@@ -206,7 +182,6 @@ router.post('/upload-image', upload.single('image'), async (req, res) => {
     }
 
     const originalSize = req.file.size;
-    console.log(`Original image size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
 
     // Compress the image using Sharp
     const compressedFilename = `compressed-${req.file.filename}`;
@@ -227,15 +202,13 @@ router.post('/upload-image', upload.single('image'), async (req, res) => {
     const compressedStats = fs.statSync(compressedPath);
     const compressedSize = compressedStats.size;
     const compressionRatio = ((originalSize - compressedSize) / originalSize * 100).toFixed(1);
-    
-    console.log(`Compressed image size: ${(compressedSize / 1024 / 1024).toFixed(2)} MB (${compressionRatio}% reduction)`);
 
     // Delete original file and rename compressed file
     fs.unlinkSync(req.file.path);
     fs.renameSync(compressedPath, req.file.path);
 
     // Return the file path that can be accessed via the static route
-    const imageUrl = `http://192.168.3.12:3000/uploads/${req.file.filename}`;
+    const imageUrl = `${API_URL}/uploads/${req.file.filename}`;
     
     res.json({ 
       success: true, 
@@ -247,15 +220,7 @@ router.post('/upload-image', upload.single('image'), async (req, res) => {
     });
   } catch (error) {
     console.error('Image upload error:', error);
-    
-    // Clean up any partial files
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-    
-    res.status(500).json({ 
-      error: 'Error processing image. Please try with a smaller image or different format.' 
-    });
+    res.status(500).json({ error: 'Error uploading image' });
   }
 });
 
@@ -313,7 +278,7 @@ router.put('/:id/image', upload.single('image'), async (req, res) => {
     }
 
     // Update product with new image URL
-    const imageUrl = `http://192.168.3.12:3000/uploads/${req.file.filename}`;
+    const imageUrl = `${API_URL}/uploads/${req.file.filename}`;
     const updatedProduct = await Product.updateImage(id, imageUrl);
     
     res.json(updatedProduct);

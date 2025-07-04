@@ -1,108 +1,122 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { getErrorMessage } from '../utils/errorHandling';
 
-const API_BASE = 'http://192.168.3.12:3000/api';
+// Use configurable API URL
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.12:3000';
+const API_BASE = `${API_URL}/api`;
+
+// Cache for product data
+const productCache = new Map();
 
 export const useProductAPI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchProduct = async (barcode) => {
-    setLoading(true);
-    setError(null);
-    
+  // Helper function for API requests
+  const apiRequest = useCallback(async (endpoint, options = {}) => {
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Request timeout')), 10000);
     });
     
     try {
-      const fetchPromise = fetch(`${API_BASE}/products?barcode=${encodeURIComponent(barcode)}`);
+      const fetchPromise = fetch(`${API_BASE}${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...options.headers,
+        },
+        ...options,
+      });
+      
       const res = await Promise.race([fetchPromise, timeoutPromise]);
       
       if (!res.ok) {
         const errorData = await res.json();
-        if (res.status === 503 && errorData.error === 'Database connection failed') {
-          setError('Database connection failed. Please check server configuration.');
-          return null;
-        } else if (res.status === 404) {
-          setError('Product not found');
-          return null;
-        } else {
-          setError(errorData.error || 'Server error occurred');
-          return null;
-        }
+        throw new Error(errorData.error || `API Error: ${res.status}`);
       }
       
-      const products = await res.json();
+      return await res.json();
+    } catch (e) {
+      console.error(`API Request Error (${endpoint}):`, e);
+      throw new Error(getErrorMessage(e));
+    }
+  }, []);
+
+  const fetchProduct = useCallback(async (barcode) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Check cache first
+      const cacheKey = `barcode-${barcode}`;
+      if (productCache.has(cacheKey)) {
+        return productCache.get(cacheKey);
+      }
+      
+      const products = await apiRequest(`/products?barcode=${encodeURIComponent(barcode)}`);
+      
       if (Array.isArray(products) && products.length > 0) {
+        // Store in cache
+        productCache.set(cacheKey, products[0]);
         return products[0];
       } else {
         setError('Product not found');
         return null;
       }
     } catch (e) {
-      console.error('Fetch error:', e);
-      if (e.message === 'Request timeout') {
-        setError('Request timed out. Please check your connection and try again.');
-      } else {
-        setError(e.message || 'Error contacting server. Please try again.');
-      }
+      setError(getErrorMessage(e));
       return null;
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiRequest]);
 
-  const createProduct = async (productData) => {
+  const createProduct = useCallback(async (productData) => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch(`${API_BASE}/products`, {
+      const newProduct = await apiRequest('/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productData)
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Error creating product');
-      }
-
-      return await res.json();
+      
+      // Invalidate cache when creating new products
+      productCache.clear();
+      
+      return newProduct;
     } catch (e) {
-      console.error('Create product error:', e);
+      setError(getErrorMessage(e));
       throw e;
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiRequest]);
 
-  const deleteProduct = async (productId) => {
+  const deleteProduct = useCallback(async (productId) => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch(`${API_BASE}/products/${productId}`, {
+      const result = await apiRequest(`/products/${productId}`, {
         method: 'DELETE',
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Error deleting product');
-      }
-
-      return await res.json();
+      
+      // Invalidate cache when deleting products
+      productCache.clear();
+      
+      return result;
     } catch (e) {
-      console.error('Delete product error:', e);
+      setError(getErrorMessage(e));
       throw e;
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiRequest]);
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     setError(null);
-  };
+  }, []);
 
   return {
     loading,

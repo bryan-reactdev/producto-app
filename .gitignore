@@ -1,4 +1,60 @@
+# Node.js
 node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Backend
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Expo
+frontend/.expo/
+frontend/web-build/
+frontend/dist/
+frontend/npm-debug.*
+frontend/*.jks
+frontend/*.p8
+frontend/*.p12
+frontend/*.key
+frontend/*.mobileprovision
+frontend/*.orig.*
+
+# macOS
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build files
+build/
+dist/
+
+# Temp files
+tmp/
+temp/
+
+# Credentials
+google-service-account.json
+*.keystore
+*.jks
+
+# Docker volumes
+mysql-data/
 
 # Expo
 .expo/
@@ -22,10 +78,6 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
 
 # local env files
 .env*.local

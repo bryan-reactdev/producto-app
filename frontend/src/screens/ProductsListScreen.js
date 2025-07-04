@@ -18,6 +18,7 @@ import { ProductCard } from '../components/ProductCard';
 import ImageViewing from 'react-native-image-viewing';
 import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/colors';
 import styles from './ProductsListScreen.styles';
+import { getErrorMessage, handleImagePress, handleImageModalClose } from '../utils/errorHandling';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -33,6 +34,10 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 
+// API base URL
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.12:3000';
+const API_BASE = `${API_URL}/api`;
+
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
@@ -46,6 +51,10 @@ export default function ProductsListScreen({ navigation }) {
   const [modalImageSource, setModalImageSource] = useState(null);
   const [search, setSearch] = useState('');
 
+  // Image modal handlers
+  const openImageModal = handleImagePress(setModalImageSource, setImageModalVisible);
+  const closeImageModal = handleImageModalClose(setModalImageSource, setImageModalVisible);
+
   // Animation values
   const searchBarTranslateY = useSharedValue(-50);
   const fabScale = useSharedValue(1);
@@ -53,7 +62,7 @@ export default function ProductsListScreen({ navigation }) {
   const fetchProducts = async () => {
     try {
       setError(null);
-      const res = await fetch('http://192.168.3.12:3000/api/products');
+      const res = await fetch(`${API_BASE}/products`);
       if (res.ok) {
         const data = await res.json();
         setProducts(data);
@@ -62,7 +71,7 @@ export default function ProductsListScreen({ navigation }) {
         setError(errorData.error || 'Failed to fetch products');
       }
     } catch (e) {
-      setError('Network error. Please check your connection.');
+      setError(getErrorMessage(e));
     }
   };
 
@@ -79,11 +88,6 @@ export default function ProductsListScreen({ navigation }) {
       searchBarTranslateY.value = withSpring(0, { damping: 15 });
     });
   }, []);
-
-  const openImageModal = (imageSource) => {
-    setModalImageSource(imageSource);
-    setImageModalVisible(true);
-  };
 
   // Animated styles
   const searchBarAnimStyle = useAnimatedStyle(() => ({
@@ -248,13 +252,10 @@ export default function ProductsListScreen({ navigation }) {
           <ImageViewing
             images={[{ uri: modalImageSource.uri }]}
             imageIndex={0}
-          visible={imageModalVisible}
+            visible={imageModalVisible}
             key={modalImageSource.uri}
-            onRequestClose={() => {
-              setImageModalVisible(false);
-              setModalImageSource(null);
-            }}
-        />
+            onRequestClose={closeImageModal}
+          />
         )}
       </LinearGradient>
     </SafeAreaView>

@@ -1,4 +1,6 @@
 const Product = require('../models/Product');
+const path = require('path');
+const fs = require('fs');
 
 // Helper function to handle database errors
 const handleDatabaseError = (error, res, operation) => {
@@ -75,7 +77,6 @@ const productController = {
       if (!validateRequiredFields(req, res, ['name', 'price'])) return;
 
       const { name, price, barcode, image_url } = req.body;
-      console.log('Creating product with:', { name, price, barcode, image_url }); // Debug log
       const product = await Product.create({ name, price, barcode, image_url });
       res.status(201).json(product);
     } catch (error) {
@@ -108,6 +109,15 @@ const productController = {
       
       const existingProduct = await checkProductExists(id, res);
       if (!existingProduct) return;
+      
+      // Delete associated image file if it exists
+      if (existingProduct.image_url) {
+        const filename = existingProduct.image_url.split('/').pop();
+        const filePath = path.join(__dirname, '../uploads', filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
 
       await Product.delete(id);
       res.json({ message: 'Product deleted successfully' });

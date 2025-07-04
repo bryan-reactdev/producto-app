@@ -12,6 +12,7 @@ import { useImageUpload } from '../hooks/useImageUpload';
 import { useProductAPI } from '../hooks/useProductAPI';
 import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/colors';
 import ImageViewing from 'react-native-image-viewing';
+import { getErrorMessage, handleImagePress, handleImageModalClose } from '../utils/errorHandling';
 
 // CameraView is the actual camera component in SDK 53+
 const CameraView = CameraModule.CameraView;
@@ -30,6 +31,10 @@ export default function ScanScreen() {
   // Custom hooks
   const { selectedImage, uploadingImage, pickImage, uploadImage, clearImage } = useImageUpload();
   const { loading, error, fetchProduct, createProduct, clearError } = useProductAPI();
+
+  // Image modal handlers
+  const openImageModal = handleImagePress(setModalImageSource, setImageModalVisible);
+  const closeImageModal = handleImageModalClose(setModalImageSource, setImageModalVisible);
 
   // Ask for camera permission on mount
   useEffect(() => {
@@ -63,16 +68,28 @@ export default function ScanScreen() {
     // Error is handled by the hook and will show in the UI
   };
 
-  // Function to open image modal
-  const openImageModal = (imageSource) => {
-    setModalImageSource(imageSource);
-    setImageModalVisible(true);
+  // Reset scan state
+  const resetScan = () => {
+    setScanned(false);
+    setProduct(null);
+    setShowCreateForm(false);
+    setNewProduct({ name: '', price: '' });
+    setScannedBarcode('');
+    clearImage();
+    clearError();
   };
 
   // Function to create a new product
   const handleCreateProduct = async () => {
     if (!newProduct.name.trim() || !newProduct.price.trim()) {
       Alert.alert('Error', 'Please fill in both name and price');
+      return;
+    }
+
+    // Validate price format
+    const priceValue = parseFloat(newProduct.price);
+    if (isNaN(priceValue) || priceValue <= 0) {
+      Alert.alert('Error', 'Please enter a valid price (e.g., 9.99)');
       return;
     }
 
@@ -85,7 +102,7 @@ export default function ScanScreen() {
         } catch (error) {
           Alert.alert(
             'Upload Failed',
-            'Failed to upload image. This might be due to:\n\n• Image file is too large\n• Network connection issue\n• Server temporarily unavailable\n\nPlease try again with a smaller image or check your connection.',
+            getErrorMessage(error),
             [{ text: 'OK' }]
           );
           return;
@@ -94,7 +111,7 @@ export default function ScanScreen() {
 
       const productData = {
         name: newProduct.name.trim(),
-        price: parseFloat(newProduct.price),
+        price: priceValue,
         barcode: scannedBarcode,
         image_url: imageUrl
       };
@@ -112,11 +129,7 @@ export default function ScanScreen() {
         [
           {
             text: 'Scan Again',
-            onPress: () => {
-              setProduct(null);
-              setScanned(false);
-              setScannedBarcode('');
-            }
+            onPress: resetScan
           }
         ]
       );
@@ -124,7 +137,8 @@ export default function ScanScreen() {
       // Immediately clear the product to prevent lingering display
       setProduct(null);
     } catch (err) {
-      Alert.alert('Error', err.message || 'Error creating product. Please try again.');
+      console.error('Create product error:', err);
+      Alert.alert('Error', getErrorMessage(err));
     }
   };
 
@@ -249,15 +263,7 @@ export default function ScanScreen() {
 
           {/* Show button to scan again at the bottom */}
           {scanned && !loading && (
-            <TouchableOpacity style={styles.scanAgainButton} onPress={() => {
-              setScanned(false);
-              setProduct(null);
-              setShowCreateForm(false);
-              setNewProduct({ name: '', price: '' });
-              setScannedBarcode('');
-              clearImage();
-              clearError();
-            }}>
+            <TouchableOpacity style={styles.scanAgainButton} onPress={resetScan}>
               <Ionicons name="refresh" size={22} color="#fff" style={{ marginRight: 8 }} />
               <Text style={styles.scanAgainText}>Tap to {error ? 'Try again' : 'Scan Again'} </Text>
             </TouchableOpacity>
@@ -271,10 +277,7 @@ export default function ScanScreen() {
             imageIndex={0}
             visible={imageModalVisible}
             key={modalImageSource.uri}
-            onRequestClose={() => {
-              setImageModalVisible(false);
-              setModalImageSource(null);
-            }}
+            onRequestClose={closeImageModal}
           />
         )}
         

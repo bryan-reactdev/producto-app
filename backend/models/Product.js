@@ -4,13 +4,10 @@ class Product {
   static async create(productData) {
     const { name, price, barcode, image_url } = productData;
     
-    console.log('Product.create called with:', productData); // Debug log
-    
     let finalBarcode = barcode;
     
     // If no barcode provided, generate one
     if (!barcode) {
-      console.log('No barcode provided, generating one...'); // Debug log
       const baseName = name.replace(/\s+/g, '').toUpperCase();
       // Find max suffix for this name
       const [rows] = await db.execute(
@@ -27,12 +24,7 @@ class Product {
         }
       }
       finalBarcode = `${baseName}-${String(nextNum).padStart(3, '0')}`;
-      console.log('Generated barcode:', finalBarcode); // Debug log
-    } else {
-      console.log('Using provided barcode:', barcode); // Debug log
     }
-    
-    console.log('Final barcode to be stored:', finalBarcode); // Debug log
     
     const [result] = await db.execute(
       'INSERT INTO products (name, price, barcode, image_url) VALUES (?, ?, ?, ?)',

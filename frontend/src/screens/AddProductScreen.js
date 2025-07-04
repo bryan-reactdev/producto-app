@@ -7,6 +7,7 @@ import { useImageUpload } from '../hooks/useImageUpload';
 import { useProductAPI } from '../hooks/useProductAPI';
 import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/colors';
 import styles from './AddProductScreen.styles';
+import { getErrorMessage, handleImagePress, handleImageModalClose } from '../utils/errorHandling';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -26,6 +27,17 @@ export default function AddProductScreen({ navigation }) {
   // Custom hooks
   const { selectedImage, uploadingImage, pickImage, uploadImage, clearImage } = useImageUpload();
   const { loading, createProduct } = useProductAPI();
+  
+  // Image modal handlers
+  const openImageModal = handleImagePress(setModalImageSource, setImageModalVisible);
+  const closeImageModal = handleImageModalClose(setModalImageSource, setImageModalVisible);
+
+  // Form reset handler
+  const resetForm = () => {
+    setNewProduct({ name: '', price: '' });
+    setBarcode('');
+    clearImage();
+  };
 
   const handleCreateProduct = async () => {
     if (!newProduct.name.trim() || !newProduct.price.trim()) {
@@ -42,7 +54,12 @@ export default function AddProductScreen({ navigation }) {
     try {
       let imageUrl = null;
       if (selectedImage) {
-        imageUrl = await uploadImage(selectedImage);
+        try {
+          imageUrl = await uploadImage(selectedImage.uri);
+        } catch (error) {
+          Alert.alert('Upload Failed', getErrorMessage(error));
+          return;
+        }
       }
 
       await createProduct({
@@ -52,25 +69,16 @@ export default function AddProductScreen({ navigation }) {
         image_url: imageUrl
       });
 
-      setNewProduct({ name: '', price: '' });
-      setBarcode('');
-      clearImage();
+      resetForm();
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to create product');
+      Alert.alert('Error', getErrorMessage(error));
     }
   };
 
   const handleCancel = () => {
-    setNewProduct({ name: '', price: '' });
-    setBarcode('');
-    clearImage();
+    resetForm();
     navigation.goBack();
-  };
-
-  const openImageModal = (imageSource) => {
-    setModalImageSource(imageSource);
-    setImageModalVisible(true);
   };
 
   // Header with icon and title
@@ -121,10 +129,7 @@ export default function AddProductScreen({ navigation }) {
             imageIndex={0}
             visible={imageModalVisible}
             key={modalImageSource.uri}
-            onRequestClose={() => {
-              setImageModalVisible(false);
-              setModalImageSource(null);
-            }}
+            onRequestClose={closeImageModal}
           />
         )}
       </LinearGradient>
