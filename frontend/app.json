@@ -29,12 +29,11 @@
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "CAMERA",
-        "WRITE_EXTERNAL_STORAGE",
-        "READ_EXTERNAL_STORAGE",
-        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.ACCESS_MEDIA_LOCATION"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ],
       "package": "com.productoapp.app",
       "versionCode": 1
@@ -60,15 +59,19 @@
     ],
     "updates": {
       "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/your-project-id"
+      "url": "https://u.expo.dev/producto-app"
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "extra": {
       "eas": {
-        "projectId": "your-project-id"
+        "projectId": "b8ac2237-6491-4d3a-8f71-2d9c16da840e"
       }
-    }
+    },
+    "cli": {
+      "appVersionSource": "remote"
+    },
+    "owner": "bryan.reactdev"
   }
 }

@@ -20,7 +20,7 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 export const ProductCard = ({ product, onImagePress, onProductDeleted }) => {
-  const { downloading, downloadBarcode } = useBarcodeDownload();
+  const { downloading, downloadBarcode, getBarcodeUrl } = useBarcodeDownload();
   const { loading, deleteProduct } = useProductAPI();
   
   // Animation values - only keep delete rotation
@@ -28,11 +28,10 @@ export const ProductCard = ({ product, onImagePress, onProductDeleted }) => {
   
   if (!product) return null;
 
-  const barcodeImageUrl = `http://192.168.3.12:3000/api/products/${product.id}/barcode-print`;
-  const barcodePdfUrl = `http://192.168.3.12:3000/api/products/${product.id}/barcode-pdf`;
+  const barcodeImageUrl = getBarcodeUrl(product.id, 'print');
 
   const handleDownloadBarcode = () => {
-    downloadBarcode(barcodePdfUrl, product.name);
+    downloadBarcode(product.id, product.name);
   };
 
   const handleDeleteProduct = () => {

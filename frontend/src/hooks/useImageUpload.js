@@ -2,9 +2,7 @@ import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Platform } from 'react-native';
 import { getErrorMessage } from '../utils/errorHandling';
-
-// Use configurable API URL
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.12:3000';
+import { API_URL, getApiUrl } from '../utils/apiConfig';
 
 // Maximum number of upload retries
 const MAX_RETRIES = 3;
@@ -115,7 +113,7 @@ export const useImageUpload = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
-      const response = await fetch(`${API_URL}/api/products/upload-image`, {
+      const response = await fetch(getApiUrl('/products/upload-image'), {
         method: 'POST',
         body: formData,
         signal: controller.signal,

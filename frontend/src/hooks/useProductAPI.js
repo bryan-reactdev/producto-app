@@ -1,9 +1,6 @@
 import { useState, useCallback } from 'react';
 import { getErrorMessage } from '../utils/errorHandling';
-
-// Use configurable API URL
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.12:3000';
-const API_BASE = `${API_URL}/api`;
+import { API_BASE } from '../utils/apiConfig';
 
 // Cache for product data
 const productCache = new Map();

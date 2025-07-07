@@ -252,10 +252,10 @@ export default function ProductsListScreen({ navigation }) {
           <ImageViewing
             images={[{ uri: modalImageSource.uri }]}
             imageIndex={0}
-            visible={imageModalVisible}
+          visible={imageModalVisible}
             key={modalImageSource.uri}
             onRequestClose={closeImageModal}
-          />
+        />
         )}
       </LinearGradient>
     </SafeAreaView>

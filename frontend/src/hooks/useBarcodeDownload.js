@@ -2,13 +2,29 @@ import { useState } from 'react';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Alert, Platform } from 'react-native';
+import { getApiUrl } from '../utils/apiConfig';
 
 export const useBarcodeDownload = () => {
   const [downloading, setDownloading] = useState(false);
 
-  const downloadBarcode = async (barcodeUrl, productName) => {
+  /**
+   * Generate barcode URL for a product
+   * @param {number} productId - The product ID
+   * @param {string} type - The barcode type ('pdf' or 'print')
+   * @returns {string} The barcode URL
+   */
+  const getBarcodeUrl = (productId, type = 'pdf') => {
+    return getApiUrl(`/products/${productId}/barcode-${type}`);
+  };
+
+  const downloadBarcode = async (productId, productName) => {
     try {
       setDownloading(true);
+      
+      // Generate barcode URL
+      const barcodeUrl = typeof productId === 'string' && productId.includes('http') 
+        ? productId // Handle case where full URL is passed
+        : getBarcodeUrl(productId, 'pdf');
       
       // Download temporarily and share directly
       const safeName = productName.replace(/[^a-zA-Z0-9]/g, '_');
@@ -66,5 +82,6 @@ export const useBarcodeDownload = () => {
     downloading,
     downloadBarcode,
     shareBarcode,
+    getBarcodeUrl
   };
 }; 
