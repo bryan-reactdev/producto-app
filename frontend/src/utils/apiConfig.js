@@ -1,10 +1,12 @@
+import { EXPO_PUBLIC_API_URL } from '@env';
+
 /**
  * Centralized API configuration
  * This file provides API configuration that can be reused across the application
  */
 
 // Use configurable API URL from environment variables
-export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
+export const API_URL = EXPO_PUBLIC_API_URL || 'http://192.168.3.12:3000';
 export const API_BASE = `${API_URL}/api`;
 
 /**

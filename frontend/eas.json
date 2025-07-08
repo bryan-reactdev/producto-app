@@ -17,9 +17,6 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "http://31.220.51.108:3000"
-      },
-      "ios": {
-        "resourceClass": "m-medium"
       }
     },
     "production": {

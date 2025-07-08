@@ -36,7 +36,9 @@
         "android.permission.RECORD_AUDIO"
       ],
       "package": "com.productoapp.app",
-      "versionCode": 1
+      "versionCode": 1,
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
