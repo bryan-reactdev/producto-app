@@ -133,6 +133,22 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     fontWeight: FONT_WEIGHT.bold,
   },
+  adminNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  adminNoticeText: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.muted,
+    marginLeft: SPACING.xs,
+    fontWeight: FONT_WEIGHT.medium,
+  },
   scanAgainButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     paddingVertical: SPACING.md,

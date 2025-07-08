@@ -20,6 +20,7 @@ import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SHADOWS } from 
 import styles from './ProductsListScreen.styles';
 import { getErrorMessage, handleImagePress, handleImageModalClose } from '../utils/errorHandling';
 import { API_BASE } from '../utils/apiConfig';
+import { useAdminMode } from '../contexts/AdminModeContext';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -47,6 +48,7 @@ export default function ProductsListScreen({ navigation }) {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImageSource, setModalImageSource] = useState(null);
   const [search, setSearch] = useState('');
+  const { isAdminMode } = useAdminMode();
 
   // Image modal handlers
   const openImageModal = handleImagePress(setModalImageSource, setImageModalVisible);
@@ -117,6 +119,7 @@ export default function ProductsListScreen({ navigation }) {
               prevProducts.filter(product => product.id !== deletedProductId)
             );
           }}
+          isAdminMode={isAdminMode}
         />
       </View>
     </Animated.View>
@@ -133,14 +136,16 @@ export default function ProductsListScreen({ navigation }) {
       <Text style={styles.emptySubtitle}>
         Start by adding products or scanning barcodes
       </Text>
-      <AnimatedTouchable 
-        style={styles.addFirstButton}
-        onPress={() => navigation.navigate('AddProduct')}
-        entering={FadeInDown.delay(800)}
-      >
-        <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-        <Text style={styles.addFirstButtonText}>Add Your First Product</Text>
-      </AnimatedTouchable>
+      {isAdminMode && (
+        <AnimatedTouchable 
+          style={styles.addFirstButton}
+          onPress={() => navigation.navigate('AddProduct')}
+          entering={FadeInDown.delay(800)}
+        >
+          <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={styles.addFirstButtonText}>Add Your First Product</Text>
+        </AnimatedTouchable>
+      )}
     </Animated.View>
   );
 
@@ -231,20 +236,22 @@ export default function ProductsListScreen({ navigation }) {
             />
           )}
         </View>
-        {/* Floating Add Button */}
-        <AnimatedTouchable
-          style={[styles.fab, fabAnimStyle]}
-          onPress={() => navigation.navigate('AddProduct')}
-          entering={SlideInRight.delay(1000).springify()}
-          onPressIn={() => {
-            fabScale.value = withSpring(0.9);
-          }}
-          onPressOut={() => {
-            fabScale.value = withSpring(1);
-          }}
-        >
-          <Ionicons name="add" size={25} color={COLORS.card} />
-        </AnimatedTouchable>
+        {/* Floating Add Button - Only show in admin mode */}
+        {isAdminMode && (
+          <AnimatedTouchable
+            style={[styles.fab, fabAnimStyle]}
+            onPress={() => navigation.navigate('AddProduct')}
+            entering={SlideInRight.delay(1000).springify()}
+            onPressIn={() => {
+              fabScale.value = withSpring(0.9);
+            }}
+            onPressOut={() => {
+              fabScale.value = withSpring(1);
+            }}
+          >
+            <Ionicons name="add" size={25} color={COLORS.card} />
+          </AnimatedTouchable>
+        )}
         {/* Image Modal */}
         {imageModalVisible && modalImageSource && modalImageSource.uri && (
           <ImageViewing

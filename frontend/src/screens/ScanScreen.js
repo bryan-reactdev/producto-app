@@ -10,6 +10,7 @@ import { ProductCard } from '../components/ProductCard';
 import { CreateProductForm } from '../components/CreateProductForm';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { useProductAPI } from '../hooks/useProductAPI';
+import { useAdminMode } from '../contexts/AdminModeContext';
 import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/colors';
 import ImageViewing from 'react-native-image-viewing';
 import { getErrorMessage, handleImagePress, handleImageModalClose } from '../utils/errorHandling';
@@ -31,6 +32,7 @@ export default function ScanScreen() {
   // Custom hooks
   const { selectedImage, uploadingImage, pickImage, uploadImage, clearImage } = useImageUpload();
   const { loading, error, fetchProduct, createProduct, clearError } = useProductAPI();
+  const { isAdminMode } = useAdminMode();
 
   // Image modal handlers
   const openImageModal = handleImagePress(setModalImageSource, setImageModalVisible);
@@ -223,12 +225,13 @@ export default function ScanScreen() {
                     setScanned(true);
                     setScannedBarcode('');
                   }}
+                  isAdminMode={isAdminMode}
                 />
               )}
               {error && !showCreateForm && (
                 <View style={styles.errorContainer}>
                   <Text style={styles.errorText}>{error}</Text>
-                  {error === 'Product not found' && (
+                  {error === 'Product not found' && isAdminMode && (
                     <TouchableOpacity 
                       style={styles.createButton} 
                       onPress={() => setShowCreateForm(true)}
@@ -236,6 +239,12 @@ export default function ScanScreen() {
                       <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
                       <Text style={styles.createButtonText}>Create New Product</Text>
                     </TouchableOpacity>
+                  )}
+                  {error === 'Product not found' && !isAdminMode && (
+                    <View style={styles.adminNotice}>
+                      <Ionicons name="shield-outline" size={16} color={COLORS.muted} />
+                      <Text style={styles.adminNoticeText}>Enable admin mode to create new products</Text>
+                    </View>
                   )}
                 </View>
               )}

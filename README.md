@@ -2,6 +2,35 @@
 
 A mobile application for product management built with React Native (Expo) frontend and Express backend.
 
+## Features
+
+- **Product Management**: Add, view, and delete products
+- **Barcode Scanning**: Scan product barcodes to find existing products
+- **Admin Mode**: PIN-protected admin mode for creation and deletion features
+- **Image Upload**: Upload product images with automatic optimization
+- **Barcode Generation**: Generate and download barcodes for products
+- **Search**: Search products by name or barcode
+
+## Admin Mode
+
+The app includes a PIN-protected admin mode that restricts creation and deletion features to authorized users only:
+
+- **PIN**: `1234` (configurable in `frontend/src/hooks/useAdminMode.js`)
+- **Admin Features**:
+  - Add new products
+  - Delete existing products
+  - Create products from scanned barcodes
+- **Regular User Features**:
+  - View all products
+  - Scan barcodes to find products
+  - Download product barcodes
+
+To enable admin mode:
+1. Tap the "Admin Mode" button on the main screen
+2. Enter the PIN when prompted
+3. Admin features will become available
+4. Tap "Admin Mode ON" to disable admin mode
+
 ## Project Structure
 
 - `/frontend` - React Native Expo application
@@ -199,6 +228,7 @@ Before deploying to production, ensure the following:
 - [ ] Images are properly optimized
 - [ ] Performance testing has been done
 - [ ] Security testing has been done
+- [ ] Admin PIN is changed from default (1234) to a secure value
 
 ## Monitoring and Maintenance
 
@@ -206,13 +236,6 @@ Before deploying to production, ensure the following:
 - Consider setting up monitoring with tools like PM2, New Relic, or Datadog
 - Regularly backup the database
 - Keep dependencies updated
-
-## Features
-
-- Scan product barcodes
-- Create and manage products
-- Upload product images
-- Generate and download barcode PDFs
 
 ## License
 

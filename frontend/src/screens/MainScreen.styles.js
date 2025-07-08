@@ -80,6 +80,17 @@ const styles = StyleSheet.create({
     color: COLORS.muted,
     fontWeight: FONT_WEIGHT.medium,
   },
+  // Admin-specific styles
+  adminButton: {
+    backgroundColor: 'rgba(67, 160, 71, 0.1)',
+    borderColor: 'rgba(67, 160, 71, 0.3)',
+  },
+  adminIcon: {
+    backgroundColor: 'rgba(67, 160, 71, 0.2)',
+  },
+  adminText: {
+    color: COLORS.success,
+  },
 });
 
 export default styles; 

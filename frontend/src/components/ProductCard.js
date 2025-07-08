@@ -19,7 +19,7 @@ import Animated, {
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
-export const ProductCard = ({ product, onImagePress, onProductDeleted }) => {
+export const ProductCard = ({ product, onImagePress, onProductDeleted, isAdminMode = false }) => {
   const { downloading, downloadBarcode, getBarcodeUrl } = useBarcodeDownload();
   const { loading, deleteProduct } = useProductAPI();
   
@@ -124,7 +124,7 @@ export const ProductCard = ({ product, onImagePress, onProductDeleted }) => {
         
         <View style={styles.actionButtons}>
           <AnimatedTouchable 
-            style={styles.downloadBtn}
+            style={[styles.downloadBtn, !isAdminMode && styles.downloadBtnFull]}
             onPress={handleDownloadBarcode}
             disabled={downloading || loading}
           >
@@ -139,17 +139,19 @@ export const ProductCard = ({ product, onImagePress, onProductDeleted }) => {
             </Text>
           </AnimatedTouchable>
           
-          <AnimatedTouchable 
-            style={[styles.deleteBtn, deleteAnimStyle]}
-            onPress={handleDeleteProduct}
-            disabled={loading}
-          >
-            <Ionicons 
-              name={loading ? "hourglass-outline" : "trash-outline"} 
-              size={16} 
-              color={COLORS.card} 
-            />
-          </AnimatedTouchable>
+          {isAdminMode && (
+            <AnimatedTouchable 
+              style={[styles.deleteBtn, deleteAnimStyle]}
+              onPress={handleDeleteProduct}
+              disabled={loading}
+            >
+              <Ionicons 
+                name={loading ? "hourglass-outline" : "trash-outline"} 
+                size={16} 
+                color={COLORS.card} 
+              />
+            </AnimatedTouchable>
+          )}
         </View>
       </Animated.View>
     </Animated.View>
@@ -237,6 +239,9 @@ const styles = StyleSheet.create({
     marginRight: 6,
     ...SHADOWS.sm,
     elevation: 2,
+  },
+  downloadBtnFull: {
+    marginRight: 0,
   },
   downloadBtnText: {
     fontSize: FONT_SIZE.sm,
