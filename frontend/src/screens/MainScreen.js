@@ -66,23 +66,6 @@ export default function MainScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={20} color={COLORS.muted} />
           </AnimatedTouchable>
 
-          <AnimatedTouchable 
-            entering={FadeInDown.delay(400).springify()}
-            style={[styles.menuButton, !isAdminMode && { opacity: 0, position: 'absolute', width: '100%' }]}
-            onPress={isAdminMode ? () => navigation.navigate('AddProduct') : undefined}
-            activeOpacity={0.7}
-            disabled={!isAdminMode}
-            pointerEvents={isAdminMode ? 'auto' : 'none'}
-          >
-            <View style={styles.buttonIcon}>
-              <MaterialIcons name="add-box" size={32} color={COLORS.success} />
-            </View>
-            <View style={styles.buttonContent}>
-              <Text style={styles.menuText}>Add Product</Text>
-              <Text style={styles.menuSubtext}>Create new product entries</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.muted} />
-          </AnimatedTouchable>
 
           <AnimatedTouchable 
             entering={FadeInDown.delay(500).springify()}
@@ -100,6 +83,25 @@ export default function MainScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={20} color={COLORS.muted} />
           </AnimatedTouchable>
         </View>
+          {isAdminMode ? (
+            <AnimatedTouchable 
+              entering={FadeInDown.delay(400).springify()}
+              style={styles.menuButton}
+              onPress={() => navigation.navigate('AddProduct')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.buttonIcon}>
+                <MaterialIcons name="add-box" size={32} color={COLORS.success} />
+              </View>
+              <View style={styles.buttonContent}>
+                <Text style={styles.menuText}>Add Product</Text>
+                <Text style={styles.menuSubtext}>Create new product entries</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.muted} />
+            </AnimatedTouchable>
+          ) : (
+            <View style={[styles.menuButton, {backgroundColor: 'transparent', borderColor: 'transparent', elevation: 0, shadowColor: 'transparent'}]} />
+          )}
       </View>
     </LinearGradient>
   );
