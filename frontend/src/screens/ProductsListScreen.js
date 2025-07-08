@@ -19,6 +19,7 @@ import ImageViewing from 'react-native-image-viewing';
 import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/colors';
 import styles from './ProductsListScreen.styles';
 import { getErrorMessage, handleImagePress, handleImageModalClose } from '../utils/errorHandling';
+import { API_BASE } from '../utils/apiConfig';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -33,8 +34,6 @@ import Animated, {
   SlideInRight,
   Easing
 } from 'react-native-reanimated';
-
-import { API_BASE } from '../utils/apiConfig';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -60,6 +59,7 @@ export default function ProductsListScreen({ navigation }) {
   const fetchProducts = async () => {
     try {
       setError(null);
+        
       const res = await fetch(`${API_BASE}/products`);
       if (res.ok) {
         const data = await res.json();

@@ -20,7 +20,7 @@ export const getErrorMessage = (error) => {
 
   // Get error message
   const errorMessage = error.message || String(error);
-  
+
   // Check for specific network errors that indicate server is down
   if (error.name === 'TypeError' && errorMessage.includes('fetch')) {
     return 'Server is not running. Please start the backend server and try again.';
@@ -29,11 +29,23 @@ export const getErrorMessage = (error) => {
   if (errorMessage.includes('Network request failed') || 
       errorMessage.includes('Failed to fetch') ||
       errorMessage.includes('ECONNREFUSED')) {
-    return 'Server is not running. Please start the backend server and try again.';
+    return 'Network connection failed. Check your internet connection and server status.';
   }
   
   if (errorMessage === 'Request timeout' || error.name === 'AbortError') {
     return 'Request timed out. The server might be down or overloaded. Please try again.';
+  }
+
+  // Android-specific network errors
+  if (errorMessage.includes('NetworkOnMainThreadException') || 
+      errorMessage.includes('CLEARTEXT_NOT_PERMITTED')) {
+    return 'Network security configuration issue. Please check app permissions.';
+  }
+
+  // iOS-specific network errors
+  if (errorMessage.includes('NSURLErrorDomain') || 
+      errorMessage.includes('App Transport Security')) {
+    return 'iOS network security blocked the request. Please check app configuration.';
   }
 
   // Database connection errors

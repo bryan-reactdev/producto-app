@@ -1,4 +1,5 @@
 import { EXPO_PUBLIC_API_URL } from '@env';
+import { Platform } from 'react-native';
 
 /**
  * Centralized API configuration
@@ -9,6 +10,7 @@ import { EXPO_PUBLIC_API_URL } from '@env';
 export const API_URL = EXPO_PUBLIC_API_URL || 'http://192.168.3.12:3000';
 export const API_BASE = `${API_URL}/api`;
 
+
 /**
  * Generate a complete API endpoint URL
  * @param {string} path - The API endpoint path (without /api prefix)
@@ -17,7 +19,8 @@ export const API_BASE = `${API_URL}/api`;
 export const getApiUrl = (path) => {
   // Ensure path starts with a slash if not empty
   const formattedPath = path && !path.startsWith('/') ? `/${path}` : path;
-  return `${API_BASE}${formattedPath || ''}`;
+  const fullUrl = `${API_BASE}${formattedPath || ''}`;
+  return fullUrl;
 };
 
 /**

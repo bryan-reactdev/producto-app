@@ -16,8 +16,6 @@ export default function MainScreen({ navigation }) {
   return (
     <LinearGradient colors={COLORS.bgGradient} style={styles.gradient}>
       <View style={styles.container}>
-        <Text>API_URL: {API_URL}</Text>
-
         <Animated.View 
           style={styles.headerSection}
           entering={FadeIn.delay(200).springify()}

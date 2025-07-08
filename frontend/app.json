@@ -19,7 +19,17 @@
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select product images.",
         "NSPhotoLibraryAddUsageDescription": "This app needs access to save barcode images to your photo library for printing purposes.",
-        "NSCameraUsageDescription": "This app needs access to camera to scan barcodes."
+        "NSCameraUsageDescription": "This app needs access to camera to scan barcodes.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSExceptionDomains": {
+            "31.220.51.108": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSExceptionMinimumTLSVersion": "1.0",
+              "NSExceptionRequiresForwardSecrecy": false
+            }
+          }
+        }
       }
     },
     "android": {
@@ -33,12 +43,15 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.ACCESS_MEDIA_LOCATION",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
       ],
       "package": "com.productoapp.app",
       "versionCode": 1,
       "enableProguardInReleaseBuilds": true,
-      "enableShrinkResourcesInReleaseBuilds": true
+      "enableShrinkResourcesInReleaseBuilds": true,
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -57,7 +70,12 @@
         {
           "photosPermission": "Allow ProductoApp to access your photo library to select product images."
         }
-      ]
+      ],
+      ["expo-build-properties", {
+        "android": {
+          "usesCleartextTraffic": true
+        }
+      }]
     ],
     "updates": {
       "fallbackToCacheTimeout": 0,
