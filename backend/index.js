@@ -69,6 +69,9 @@ app.get('/api/health', (req, res) => {
 const productRoutes = require('./routes/productRoutes');
 app.use('/api/products', productRoutes);
 
+const productGroupRoutes = require('./routes/productGroupRoutes');
+app.use('/api/groups', productGroupRoutes);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server error:', err);

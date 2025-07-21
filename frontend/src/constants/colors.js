@@ -23,6 +23,7 @@ export const COLORS = {
   scanFrame: '#007aff',
   scanGlow: '#f9c846',
   border: '#dbeafe',
+  statusBar: 'rgba(255,255,255,0.95)',
 };
 
 export const SPACING = {

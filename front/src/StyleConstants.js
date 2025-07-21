@@ -1,0 +1,65 @@
+export const SPACING = {
+    xxs: 4,
+    xs: 8,
+    sm: 16,
+    base: 24,
+    lg: 32,
+    xl: 40,
+    xxl: 48,
+};  
+
+export const SIZING = {
+    xxxs: 4,
+    xxs: 8,
+    xs: 16,
+    sm: 28,
+    base: 36,
+    lg: 48,
+    xl: 64,
+}
+
+export const FONT_SIZES = {
+    xxs: 10,   // Captions, footnotes
+    xs: 12,   // Captions, footnotes
+    sm: 14,   // Secondary text, minor labels
+    base: 16, // Body text (Material Design default, accessibility-friendly)
+    lg: 20,   // List items, button text
+    xl: 24,   // Section headings, card titles
+    xxl: 28,  // Page titles / major headlines
+    xxxl: 48,  // Big icons
+};
+  
+export const BORDER_WIDTH = {
+    sm: 1,     // subtle lines
+    base: 2,     // standard outline / focus
+    lg: 3,     // bold emphasis (use sparingly)
+};
+  
+export const BORDER_RADIUS = {
+    sm: 4,   // tiny rounding – subtle, modern touches
+    base: 8,   // default “friendly” corners on cards, buttons
+    lg: 12,  // prominent rounded look, used for highlights or large CTAs
+    xl: 16,  // extra-rounded style—buttons, modals, bottom sheets
+    xxl: 32,  // extra-rounded style—buttons, modals, bottom sheets
+};  
+
+export const COLORS = {
+    textPrimary: '#000',
+    textSecondary: '#7B7B7B',
+    textPrimaryContrast: '#fff',
+    textSave: '#3182ce',
+    textDelete: '#D40501',
+    textSuccess: '#005015',
+
+    borderPrimary: '#D9D9D9',     
+    borderSecondary: '#DDDDDD', 
+
+    buttonPrimary: '#000',
+    buttonSecondary: '#f1f1f1',
+
+    inputPrimary: '#fff',
+    inputSecondary: '#f1f1f1',
+
+    backgroundPrimary: '#fff',
+    backgroundSecondary: '#eceef6',
+}

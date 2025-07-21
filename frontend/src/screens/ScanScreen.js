@@ -8,12 +8,12 @@ import styles from './ScanScreen.styles';
 // Components and hooks
 import { ProductCard } from '../components/ProductCard';
 import { CreateProductForm } from '../components/CreateProductForm';
-import { useImageUpload } from '../hooks/useImageUpload';
+import { useProductCreation } from '../hooks/useProductCreation';
 import { useProductAPI } from '../hooks/useProductAPI';
 import { useAdminMode } from '../contexts/AdminModeContext';
-import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/colors';
+import { COLORS } from '../constants/colors';
 import ImageViewing from 'react-native-image-viewing';
-import { getErrorMessage, handleImagePress, handleImageModalClose } from '../utils/errorHandling';
+import { handleImagePress, handleImageModalClose } from '../utils/errorHandling';
 
 // CameraView is the actual camera component in SDK 53+
 const CameraView = CameraModule.CameraView;
@@ -24,19 +24,50 @@ export default function ScanScreen() {
   const [scanned, setScanned] = useState(false);
   const [product, setProduct] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: '', price: '' });
-  const [scannedBarcode, setScannedBarcode] = useState('');
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImageSource, setModalImageSource] = useState(null);
 
   // Custom hooks
-  const { selectedImage, uploadingImage, pickImage, uploadImage, clearImage } = useImageUpload();
-  const { loading, error, fetchProduct, createProduct, clearError } = useProductAPI();
+  const { loading: fetchLoading, error, fetchProduct, clearError } = useProductAPI();
   const { isAdminMode } = useAdminMode();
 
   // Image modal handlers
   const openImageModal = handleImagePress(setModalImageSource, setImageModalVisible);
   const closeImageModal = handleImageModalClose(setModalImageSource, setImageModalVisible);
+
+  // Product creation hook
+  const {
+    newProduct,
+    selectedImage,
+    isSubmitting,
+    uploadingImage,
+    loading: creationLoading,
+    setNewProduct,
+    setBarcode,
+    pickImage,
+    clearImage,
+    handleCreateProduct,
+    handleCancel,
+  } = useProductCreation({
+    onSuccess: (createdProduct) => {
+      setProduct(createdProduct);
+      setShowCreateForm(false);
+      Alert.alert(
+        'Success!',
+        `Product "${createdProduct.name}" has been created successfully.`,
+        [
+          {
+            text: 'Scan Again',
+            onPress: resetScan
+          }
+        ]
+      );
+    },
+    onCancel: () => {
+      setShowCreateForm(false);
+      setScanned(true);
+    }
+  });
 
   // Ask for camera permission on mount
   useEffect(() => {
@@ -60,7 +91,7 @@ export default function ScanScreen() {
   const handleBarCodeScanned = async ({ data }) => {
     setScanned(true);
     setProduct(null);
-    setScannedBarcode(data);
+    setBarcode(data);
     setShowCreateForm(false);
     
     const fetchedProduct = await fetchProduct(data);
@@ -76,72 +107,9 @@ export default function ScanScreen() {
     setProduct(null);
     setShowCreateForm(false);
     setNewProduct({ name: '', price: '' });
-    setScannedBarcode('');
+    setBarcode('');
     clearImage();
     clearError();
-  };
-
-  // Function to create a new product
-  const handleCreateProduct = async () => {
-    if (!newProduct.name.trim() || !newProduct.price.trim()) {
-      Alert.alert('Error', 'Please fill in both name and price');
-      return;
-    }
-
-    // Validate price format
-    const priceValue = parseFloat(newProduct.price);
-    if (isNaN(priceValue) || priceValue <= 0) {
-      Alert.alert('Error', 'Please enter a valid price (e.g., 9.99)');
-      return;
-    }
-
-    try {
-      let imageUrl = null;
-      
-      if (selectedImage) {
-        try {
-          imageUrl = await uploadImage(selectedImage.uri);
-        } catch (error) {
-          Alert.alert(
-            'Upload Failed',
-            getErrorMessage(error),
-            [{ text: 'OK' }]
-          );
-          return;
-        }
-      }
-
-      const productData = {
-        name: newProduct.name.trim(),
-        price: priceValue,
-        barcode: scannedBarcode,
-        image_url: imageUrl
-      };
-      
-      const createdProduct = await createProduct(productData);
-      setProduct(createdProduct);
-      setShowCreateForm(false);
-      setNewProduct({ name: '', price: '' });
-      clearImage();
-      
-      // Show success message and reset to scanning state
-      Alert.alert(
-        'Success!',
-        `Product "${createdProduct.name}" has been created successfully.`,
-        [
-          {
-            text: 'Scan Again',
-            onPress: resetScan
-          }
-        ]
-      );
-      
-      // Immediately clear the product to prevent lingering display
-      setProduct(null);
-    } catch (err) {
-      console.error('Create product error:', err);
-      Alert.alert('Error', getErrorMessage(err));
-    }
   };
 
   // Header with icon and title
@@ -207,14 +175,14 @@ export default function ScanScreen() {
           )}
 
           {/* Show loading spinner */}
-          {loading && (
+          {(fetchLoading || creationLoading) && (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={COLORS.primary} />
             </View>
           )}
 
           {/* Show product card, error, or create form */}
-          {(product || error || showCreateForm) && !loading && (
+          {(product || error || showCreateForm) && !fetchLoading && !creationLoading && (
             <View style={styles.resultsContainer}>
               {product && (
                 <ProductCard 
@@ -223,7 +191,7 @@ export default function ScanScreen() {
                   onProductDeleted={() => {
                     setProduct(null);
                     setScanned(true);
-                    setScannedBarcode('');
+                    setBarcode('');
                   }}
                   isAdminMode={isAdminMode}
                 />
@@ -237,7 +205,7 @@ export default function ScanScreen() {
                       onPress={() => setShowCreateForm(true)}
                     >
                       <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                      <Text style={styles.createButtonText}>Create New Product</Text>
+                      <Text style={styles.createButtonText}>Register New Product</Text>
                     </TouchableOpacity>
                   )}
                   {error === 'Product not found' && !isAdminMode && (
@@ -250,7 +218,7 @@ export default function ScanScreen() {
               )}
               {showCreateForm && (
                 <CreateProductForm
-                  barcode={scannedBarcode}
+                  barcode={newProduct.barcode}
                   newProduct={newProduct}
                   setNewProduct={setNewProduct}
                   selectedImage={selectedImage}
@@ -259,19 +227,15 @@ export default function ScanScreen() {
                   onRemoveImage={clearImage}
                   onImagePress={openImageModal}
                   onSubmit={handleCreateProduct}
-                  onCancel={() => {
-                    setShowCreateForm(false);
-                    setNewProduct({ name: '', price: '' });
-                    clearImage();
-                  }}
-                  loading={loading}
+                  onCancel={handleCancel}
+                  loading={creationLoading || isSubmitting || uploadingImage}
                 />
               )}
             </View>
           )}
 
           {/* Show button to scan again at the bottom */}
-          {scanned && !loading && (
+          {scanned && !fetchLoading && !creationLoading && (
             <TouchableOpacity style={styles.scanAgainButton} onPress={resetScan}>
               <Ionicons name="refresh" size={22} color="#fff" style={{ marginRight: 8 }} />
               <Text style={styles.scanAgainText}>Tap to {error ? 'Try again' : 'Scan Again'} </Text>

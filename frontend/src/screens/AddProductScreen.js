@@ -1,85 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CreateProductForm } from '../components/CreateProductForm';
-import { useImageUpload } from '../hooks/useImageUpload';
-import { useProductAPI } from '../hooks/useProductAPI';
-import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/colors';
+import { COLORS } from '../constants/colors';
 import styles from './AddProductScreen.styles';
-import { getErrorMessage, handleImagePress, handleImageModalClose } from '../utils/errorHandling';
+import { handleImagePress, handleImageModalClose } from '../utils/errorHandling';
 import Animated, {
   FadeIn,
   FadeInUp,
-  FadeOut,
-  Layout
 } from 'react-native-reanimated';
 import ImageViewing from 'react-native-image-viewing';
+import { useProductCreation } from '../hooks/useProductCreation';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function AddProductScreen({ navigation }) {
-  const [newProduct, setNewProduct] = useState({ name: '', price: '' });
-  const [barcode, setBarcode] = useState('');
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImageSource, setModalImageSource] = useState(null);
-
-  // Custom hooks
-  const { selectedImage, uploadingImage, pickImage, uploadImage, clearImage } = useImageUpload();
-  const { loading, createProduct } = useProductAPI();
+  // Removed successMessage state
   
   // Image modal handlers
   const openImageModal = handleImagePress(setModalImageSource, setImageModalVisible);
   const closeImageModal = handleImageModalClose(setModalImageSource, setImageModalVisible);
 
-  // Form reset handler
-  const resetForm = () => {
-    setNewProduct({ name: '', price: '' });
-    setBarcode('');
-    clearImage();
-  };
-
-  const handleCreateProduct = async () => {
-    if (!newProduct.name.trim() || !newProduct.price.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    const price = parseFloat(newProduct.price);
-    if (isNaN(price) || price <= 0) {
-      Alert.alert('Error', 'Please enter a valid price');
-      return;
-    }
-
-    try {
-      let imageUrl = null;
-      if (selectedImage) {
-        try {
-          imageUrl = await uploadImage(selectedImage.uri);
-        } catch (error) {
-          Alert.alert('Upload Failed', getErrorMessage(error));
-          return;
-        }
-      }
-
-      await createProduct({
-        name: newProduct.name.trim(),
-        price: price,
-        barcode: barcode,
-        image_url: imageUrl
-      });
-
-      resetForm();
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert('Error', getErrorMessage(error));
-    }
-  };
-
-  const handleCancel = () => {
-    resetForm();
-    navigation.goBack();
-  };
+  const {
+    newProduct,
+    barcode,
+    selectedImage,
+    isSubmitting,
+    uploadingImage,
+    loading,
+    setNewProduct,
+    setBarcode,
+    pickImage,
+    clearImage,
+    handleCreateProduct,
+    handleCancel,
+  } = useProductCreation({
+    onSuccess: () => {
+      Alert.alert('Success', 'Product created successfully!');
+      // Form is already reset by the hook
+    },
+    onCancel: () => navigation.goBack(),
+  });
 
   // Header with icon and title
   const Header = () => (
@@ -100,9 +64,9 @@ export default function AddProductScreen({ navigation }) {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar backgroundColor={COLORS.statusBar} barStyle="dark-content" />
       <LinearGradient colors={COLORS.bgGradient} style={styles.gradient}>
         <Header />
-        
         <Animated.View 
           style={styles.container}
           entering={FadeInUp.springify()}
@@ -118,11 +82,10 @@ export default function AddProductScreen({ navigation }) {
             onImagePress={openImageModal}
             onSubmit={handleCreateProduct}
             onCancel={handleCancel}
-            loading={loading}
+            loading={loading || isSubmitting || uploadingImage}
           />
         </Animated.View>
         
-        {/* Image Modal */}
         {imageModalVisible && modalImageSource && modalImageSource.uri && (
           <ImageViewing
             images={[{ uri: modalImageSource.uri }]}

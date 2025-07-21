@@ -9,7 +9,7 @@ const Product = require('../models/Product');
 const PDFDocument = require('pdfkit');
 
 // Set up API URL from environment or use default
-const API_URL = process.env.API_URL || 'http://192.168.3.12:3000';
+const API_URL = process.env.API_URL || 'http://192.168.3.182:3000';
 
 const router = express.Router();
 

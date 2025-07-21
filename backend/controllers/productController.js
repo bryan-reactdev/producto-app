@@ -48,6 +48,7 @@ const productController = {
         const products = await Product.findByBarcode(barcode);
         return res.json(products);
       }
+      
       const products = await Product.findAll();
       res.json(products);
     } catch (error) {
@@ -76,8 +77,8 @@ const productController = {
     try {
       if (!validateRequiredFields(req, res, ['name', 'price'])) return;
 
-      const { name, price, barcode, image_url } = req.body;
-      const product = await Product.create({ name, price, barcode, image_url });
+      const { name, price, barcode, image_url, product_group_id } = req.body;
+      const product = await Product.create({ name, price, barcode, image_url, product_group_id });
       res.status(201).json(product);
     } catch (error) {
       handleDatabaseError(error, res, 'creating product');

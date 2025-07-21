@@ -7,7 +7,7 @@ import { Platform } from 'react-native';
  */
 
 // Use configurable API URL from environment variables
-export const API_URL = EXPO_PUBLIC_API_URL || 'http://192.168.3.12:3000';
+export const API_URL = EXPO_PUBLIC_API_URL || 'http://192.168.3.182:3000';
 export const API_BASE = `${API_URL}/api`;
 
 

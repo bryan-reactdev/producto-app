@@ -6,11 +6,12 @@ import { API_URL, getApiUrl } from '../utils/apiConfig';
 
 // Maximum number of upload retries
 const MAX_RETRIES = 3;
+// Exponential backoff delay (ms)
+const RETRY_DELAY = 1000;
 
 export const useImageUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
 
   const requestPermissions = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -75,83 +76,80 @@ export const useImageUpload = () => {
     }
   }, [requestPermissions]);
 
-  const uploadImage = useCallback(async (imageUri, retryCount = 0) => {
+  const uploadImage = useCallback(async (imageUri) => {
+    if (!imageUri) {
+      throw new Error('No image to upload');
+    }
+
+    if (uploadingImage) {
+      throw new Error('Upload already in progress');
+    }
+
     setUploadingImage(true);
-    setUploadProgress(0);
-    
+
     try {
       // Handle case where entire image object is passed instead of just URI
-      if (imageUri && typeof imageUri === 'object' && imageUri.uri) {
-        imageUri = imageUri.uri;
-      }
+      const uri = imageUri?.uri || imageUri;
       
-      // Validate image URI - be more flexible with validation
-      if (!imageUri) {
-        throw new Error('No image URI provided');
-      }
-      
-      if (typeof imageUri !== 'string') {
-        imageUri = String(imageUri);
+      if (typeof uri !== 'string') {
+        throw new Error('Invalid image URI');
       }
 
       // Handle platform-specific URI formatting
-      if (Platform.OS === 'ios' && imageUri.startsWith('file://')) {
-        // iOS sometimes needs the file:// prefix
-      } else if (Platform.OS === 'android' && !imageUri.startsWith('file://')) {
-        // Android sometimes needs file:// prefix added
-        imageUri = `file://${imageUri}`;
-      }
+      const formattedUri = Platform.OS === 'android' && !uri.startsWith('file://')
+        ? `file://${uri}`
+        : uri;
 
       const formData = new FormData();
       formData.append('image', {
-        uri: imageUri,
+        uri: formattedUri,
         type: 'image/jpeg',
         name: 'product-image.jpg',
       });
 
-      // Create AbortController for timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-      
-      const response = await fetch(getApiUrl('/products/upload-image'), {
-        method: 'POST',
-        body: formData,
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
+      let lastError = null;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload image');
-      }
+          const response = await fetch(getApiUrl('/products/upload-image'), {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal,
+          });
 
-      const result = await response.json();
-      setUploadProgress(100);
-      return result.imageUrl;
-    } catch (error) {
-      console.error('Upload error:', error);
-      
-      // Implement retry logic
-      if (error.name === 'AbortError' || error.message.includes('network') || error.message.includes('timeout')) {
-        if (retryCount < MAX_RETRIES) {
-          console.log(`Retrying upload (attempt ${retryCount + 1} of ${MAX_RETRIES})...`);
-          return uploadImage(imageUri, retryCount + 1);
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to upload image');
+          }
+
+          const result = await response.json();
+          return result.imageUrl;
+        } catch (error) {
+          lastError = error;
+          if (attempt < MAX_RETRIES - 1) {
+            // Wait before retrying, using exponential backoff
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * Math.pow(2, attempt)));
+          }
         }
       }
-      
-      throw new Error(getErrorMessage(error));
+
+      throw lastError || new Error('Failed to upload image after retries');
     } finally {
       setUploadingImage(false);
     }
   }, []);
 
-  const clearImage = useCallback(() => setSelectedImage(null), []);
+  const clearImage = useCallback(() => {
+    setSelectedImage(null);
+  }, []);
 
   return {
     selectedImage,
     uploadingImage,
-    uploadProgress,
     pickImage,
     uploadImage,
     clearImage,

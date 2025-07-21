@@ -10,11 +10,12 @@ import {
   SafeAreaView,
   RefreshControl,
   Alert,
-  TextInput
+  TextInput,
+  StatusBar
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ProductCard } from '../components/ProductCard';
+import { ProductTableRow } from '../components/ProductTableRow';
 import ImageViewing from 'react-native-image-viewing';
 import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/colors';
 import styles from './ProductsListScreen.styles';
@@ -35,12 +36,16 @@ import Animated, {
   SlideInRight,
   Easing
 } from 'react-native-reanimated';
+import { useFocusEffect } from '@react-navigation/native';
+import { GroupTableRow } from '../components/GroupTableRow';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 export default function ProductsListScreen({ navigation }) {
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -58,11 +63,32 @@ export default function ProductsListScreen({ navigation }) {
   const searchBarTranslateY = useSharedValue(-50);
   const fabScale = useSharedValue(1);
 
-  const fetchProducts = async () => {
+  // Fetch all groups
+  const fetchGroups = async () => {
     try {
       setError(null);
-        
-      const res = await fetch(`${API_BASE}/products`);
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/groups`);
+      if (res.ok) {
+        const data = await res.json();
+        setGroups(data);
+      } else {
+        const errorData = await res.json();
+        setError(errorData.error || 'Failed to fetch groups');
+      }
+    } catch (e) {
+      setError(getErrorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch products for a group
+  const fetchProducts = async (groupId) => {
+    try {
+      setError(null);
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/groups/${groupId}`);
       if (res.ok) {
         const data = await res.json();
         setProducts(data);
@@ -72,83 +98,108 @@ export default function ProductsListScreen({ navigation }) {
       }
     } catch (e) {
       setError(getErrorMessage(e));
+    } finally {
+      setLoading(false);
     }
   };
 
+  // On mount, fetch groups
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchGroups();
+      searchBarTranslateY.value = withSpring(0, { damping: 15 });
+    }, [])
+  );
+
+  // Refresh handler
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchProducts();
+    if (selectedGroup) {
+      await fetchProducts(selectedGroup.id);
+    } else {
+      await fetchGroups();
+    }
     setRefreshing(false);
   };
-
-  useEffect(() => {
-    fetchProducts().finally(() => {
-      setLoading(false);
-      // Start entrance animations
-      searchBarTranslateY.value = withSpring(0, { damping: 15 });
-    });
-  }, []);
 
   // Animated styles
   const searchBarAnimStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: searchBarTranslateY.value }]
   }));
-
   const fabAnimStyle = useAnimatedStyle(() => ({
     transform: [{ scale: fabScale.value }]
   }));
 
-  // Filter products by search
+  // Filtered products by search
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.barcode && p.barcode.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const renderProduct = ({ item, index }) => (
-    <View style={{ flex: 1, marginHorizontal: 4 }}>
-    <Animated.View
-      entering={FadeInDown.delay(index * 100).springify()}
-    >
-      <View style={styles.productItem}>
-        <ProductCard 
-          product={item} 
-          onImagePress={openImageModal}
-          onProductDeleted={(deletedProductId) => {
-            setProducts(prevProducts => 
-              prevProducts.filter(product => product.id !== deletedProductId)
-            );
-          }}
-          isAdminMode={isAdminMode}
-        />
-      </View>
+  // Render group row
+  const renderGroup = ({ item, index }) => (
+    <Animated.View entering={FadeInDown.delay(index * 50).springify()}>
+      <GroupTableRow group={item} onPress={(group) => {
+        setSelectedGroup(group);
+        fetchProducts(group.id);
+      }} />
     </Animated.View>
-    </View>
   );
 
+  // Render product row
+  const renderProduct = ({ item, index }) => (
+    <Animated.View entering={FadeInDown.delay(index * 50).springify()}>
+      <ProductTableRow 
+        product={item} 
+        onImagePress={openImageModal}
+        onProductDeleted={(deletedProductId) => {
+          setProducts(prevProducts => 
+            prevProducts.filter(product => product.id !== deletedProductId)
+          );
+        }}
+        isAdminMode={isAdminMode}
+      />
+    </Animated.View>
+  );
+
+  // Header with icon and title
+  const Header = () => (
+    <Animated.View 
+      style={styles.header}
+      entering={FadeIn.delay(100).springify()}
+    >
+      {selectedGroup ? (
+        <TouchableOpacity style={styles.backBtn} onPress={() => setSelectedGroup(null)}>
+          <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
+        </TouchableOpacity>
+      ) : null}
+      
+      <Ionicons name={selectedGroup ? "cube-outline" : "albums-outline"} size={28} color={COLORS.primary} style={{ marginRight: 12 }} />
+      <Text style={styles.headerTitle}>{selectedGroup ? selectedGroup.name : 'All Groups'}</Text>
+      <View style={styles.headerRight}>
+        <Text style={styles.productCount}>
+          {selectedGroup ? `${filteredProducts.length} products` : `${groups.length} groups`}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+
+  // Render empty state
   const renderEmptyState = () => (
     <Animated.View 
       style={styles.emptyContainer}
       entering={FadeIn.delay(500).springify()}
     >
-      <Ionicons name="cube-outline" size={64} color={COLORS.muted} />
-      <Text style={styles.emptyTitle}>No Products Found</Text>
+      <Ionicons name={selectedGroup ? "cube-outline" : "albums-outline"} size={64} color={COLORS.muted} />
+      <Text style={styles.emptyTitle}>{selectedGroup ? 'No Products Found' : 'No Groups Found'}</Text>
       <Text style={styles.emptySubtitle}>
-        Start by adding products or scanning barcodes
+        {selectedGroup ? 'No products in this group yet.' : 'Start by adding a group.'}
       </Text>
-      {isAdminMode && (
-        <AnimatedTouchable 
-          style={styles.addFirstButton}
-          onPress={() => navigation.navigate('AddProduct')}
-          entering={FadeInDown.delay(800)}
-        >
-          <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.addFirstButtonText}>Add Your First Product</Text>
-        </AnimatedTouchable>
-      )}
     </Animated.View>
   );
 
+  // Render error state
   const renderErrorState = () => (
     <Animated.View 
       style={styles.errorContainer}
@@ -159,7 +210,7 @@ export default function ProductsListScreen({ navigation }) {
       <Text style={styles.errorText}>{error}</Text>
       <AnimatedTouchable 
         style={styles.retryButton}
-        onPress={fetchProducts}
+        onPress={selectedGroup ? () => fetchProducts(selectedGroup.id) : fetchGroups}
         entering={FadeInDown.delay(500)}
       >
         <Ionicons name="refresh" size={16} color="#fff" style={{ marginRight: 8 }} />
@@ -168,41 +219,27 @@ export default function ProductsListScreen({ navigation }) {
     </Animated.View>
   );
 
-  // Header with icon and title
-  const Header = () => (
-    <Animated.View 
-      style={styles.header}
-      entering={FadeIn.delay(100).springify()}
-    >
-      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
-      </TouchableOpacity>
-      <Ionicons name="list-outline" size={28} color={COLORS.primary} style={{ marginRight: 12 }} />
-      <Text style={styles.headerTitle}>All Products</Text>
-      <View style={styles.headerRight}>
-        <Text style={styles.productCount}>{filteredProducts.length} products</Text>
-      </View>
-    </Animated.View>
-  );
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar backgroundColor={COLORS.statusBar} barStyle="dark-content" />
       <LinearGradient colors={COLORS.bgGradient} style={styles.gradient}>
         <Header />
-        {/* Search Bar */}
-        <Animated.View style={[styles.searchBarContainer, searchBarAnimStyle]}>
-          <Ionicons name="search" size={16} color={COLORS.muted} style={{ marginRight: 8 }} />
-          <AnimatedTextInput
-            style={styles.searchBar}
-            placeholder="Search by name or barcode..."
-            placeholderTextColor={COLORS.muted}
-            value={search}
-            onChangeText={setSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-        </Animated.View>
+        {/* Search Bar: only show when viewing products */}
+        {selectedGroup && (
+          <Animated.View style={[styles.searchBarContainer, searchBarAnimStyle]}>
+            <Ionicons name="search" size={16} color={COLORS.muted} style={{ marginRight: 8 }} />
+            <AnimatedTextInput
+              style={styles.searchBar}
+              placeholder="Search by name or barcode..."
+              placeholderTextColor={COLORS.muted}
+              value={search}
+              onChangeText={setSearch}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
+          </Animated.View>
+        )}
         <View style={styles.container}>
           {loading ? (
             <Animated.View 
@@ -210,18 +247,34 @@ export default function ProductsListScreen({ navigation }) {
               entering={FadeIn}
             >
               <ActivityIndicator size="large" color={COLORS.primary} />
-              <Text style={styles.loadingText}>Loading products...</Text>
+              <Text style={styles.loadingText}>{selectedGroup ? 'Loading products...' : 'Loading groups...'}</Text>
             </Animated.View>
           ) : error ? (
             renderErrorState()
-          ) : (
+          ) : selectedGroup ? (
             <AnimatedFlatList
               data={filteredProducts}
               renderItem={renderProduct}
               keyExtractor={(item) => item.id.toString()}
-              numColumns={2}
               contentContainerStyle={styles.listContainer}
-              columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 8, marginBottom: 8 }}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={[COLORS.primary]}
+                  tintColor={COLORS.primary}
+                />
+              }
+              ListEmptyComponent={renderEmptyState}
+              entering={FadeIn}
+            />
+          ) : (
+            <AnimatedFlatList
+              data={groups}
+              renderItem={renderGroup}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={styles.listContainer}
               showsVerticalScrollIndicator={false}
               refreshControl={
                 <RefreshControl
@@ -236,8 +289,8 @@ export default function ProductsListScreen({ navigation }) {
             />
           )}
         </View>
-        {/* Floating Add Button - Only show in admin mode */}
-        {isAdminMode && (
+        {/* Floating Add Button - Only show in admin mode and when viewing products */}
+        {isAdminMode && selectedGroup && (
           <AnimatedTouchable
             style={[styles.fab, fabAnimStyle]}
             onPress={() => navigation.navigate('AddProduct')}
@@ -257,10 +310,10 @@ export default function ProductsListScreen({ navigation }) {
           <ImageViewing
             images={[{ uri: modalImageSource.uri }]}
             imageIndex={0}
-          visible={imageModalVisible}
+            visible={imageModalVisible}
             key={modalImageSource.uri}
             onRequestClose={closeImageModal}
-        />
+          />
         )}
       </LinearGradient>
     </SafeAreaView>

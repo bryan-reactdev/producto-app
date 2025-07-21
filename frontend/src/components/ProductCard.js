@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useBarcodeDownload } from '../hooks/useBarcodeDownload';
 import { useProductAPI } from '../hooks/useProductAPI';
@@ -114,14 +114,11 @@ export const ProductCard = ({ product, onImagePress, onProductDeleted, isAdminMo
         style={styles.barcodeSection}
         entering={FadeInUp.delay(300)}
       >
-        <View style={styles.barcodeContainer}>
-          <AnimatedImage 
-            source={{ uri: barcodeImageUrl }} 
-            style={styles.barcodeImage} 
-            resizeMode="contain"
-          />
+        <View style={styles.barcodeRow}>
+          <Ionicons name="barcode-outline" size={12} color={COLORS.muted} style={{ marginRight: 2 }} />
+          <Text style={styles.barcodeText}>{product.barcode}</Text>
         </View>
-        
+
         <View style={styles.actionButtons}>
           <AnimatedTouchable 
             style={[styles.downloadBtn, !isAdminMode && styles.downloadBtnFull]}
@@ -132,10 +129,10 @@ export const ProductCard = ({ product, onImagePress, onProductDeleted, isAdminMo
               name={downloading ? "hourglass-outline" : "download-outline"} 
               size={14} 
               color={COLORS.card} 
-              style={{ marginRight: 4 }} 
+              style={{ marginRight: 0, marginLeft: 0 }} 
             />
             <Text style={styles.downloadBtnText}>
-              {!downloading && 'Barcode'}
+              {!downloading && 'Save Barcode'}
             </Text>
           </AnimatedTouchable>
           
@@ -219,6 +216,15 @@ const styles = StyleSheet.create({
     width: 120,
     height: 32,
     backgroundColor: 'transparent',
+  },
+  barcodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  barcodeText: {
+    fontSize: FONT_SIZE.xs,
+    color: COLORS.muted,
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),
   },
   actionButtons: {
     flexDirection: 'row',
