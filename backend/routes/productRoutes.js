@@ -157,7 +157,9 @@ router.get('/:id/barcode-pdf', async (req, res) => {
       });
       
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="barcode_${product.barcode}.pdf"`);
+      // Sanitize product name for filename
+      const safeName = product.name.replace(/[^a-zA-Z0-9-_]/g, '_');
+      res.setHeader('Content-Disposition', `attachment; filename="${safeName}_barcode.pdf"`);
       
       // Embed barcode image to fill most of the PDF
       doc.image(png, { 

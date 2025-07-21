@@ -5,6 +5,7 @@ import { SPACING, FONT_SIZES, BORDER_WIDTH, BORDER_RADIUS, COLORS } from '../Sty
 import GroupRow from './GroupRow'
 import useGroups from '../hooks/useGroups'
 import ErrorMessage from './ErrorMessage'
+import * as Animatable from 'react-native-animatable';
 
 export default function GroupPickerModal({ visible, onClose, onSelect }) {
   const { groups, areGroupsLoading, groupsError } = useGroups();
@@ -31,10 +32,13 @@ export default function GroupPickerModal({ visible, onClose, onSelect }) {
         style={styles.overlay}
         onPress={() => { setSearchQuery(""); onClose(); }}
       >
-        <TouchableOpacity
-          activeOpacity={1}
+        <Animatable.View
+          animation="fadeInUp"
+          duration={650}
+          delay={40}
           style={styles.modalContent}
-          onPress={e => e.stopPropagation && e.stopPropagation()}
+          onStartShouldSetResponder={() => true}
+          onResponderStart={e => e.stopPropagation && e.stopPropagation()}
         >
           <Text style={styles.title}>Select Group</Text>
           
@@ -69,8 +73,7 @@ export default function GroupPickerModal({ visible, onClose, onSelect }) {
           <TouchableOpacity style={styles.cancelButton} onPress={() => { setSearchQuery(""); onClose(); }}>
             <Text style={styles.cancelButtonText}>Close</Text>
           </TouchableOpacity>
-
-        </TouchableOpacity>
+        </Animatable.View>
       </TouchableOpacity>
     </Modal>
   )
@@ -112,7 +115,7 @@ const styles = StyleSheet.create({
     fontFamily:'secondary-regular',
 
     color: COLORS.textPrimary,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.inputSecondary,
   },
   cancelButton:{
     display:'flex',

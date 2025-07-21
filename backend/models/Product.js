@@ -127,6 +127,10 @@ class Product {
     `, [groupId]);
     return rows.map(this.mapRowToProduct);
   }
+
+  static async deleteByGroupId(groupId) {
+    await db.execute('DELETE FROM products WHERE product_group_id = ?', [groupId]);
+  }
 }
 
 module.exports = Product; 

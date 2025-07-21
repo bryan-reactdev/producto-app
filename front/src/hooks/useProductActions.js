@@ -1,6 +1,6 @@
 // front/src/hooks/useProductActions.js
 import { useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { getErrorMessage, retryWithBackoff } from '../utils/errorHandling';
@@ -16,10 +16,43 @@ export function useProductActions({ id, name, onProductDeleted, setError }) {
     setDownloading(true);
     try {
       const url = `${API_BASE}/api/products/${id}/barcode-pdf`;
-      const fileUri = FileSystem.cacheDirectory + `barcode-${id}.pdf`;
-      const res = await retryWithBackoff(() => FileSystem.downloadAsync(url, fileUri));
-      if (res.status !== 200) throw new Error('Could not download barcode. Please try again later.');
-      await Sharing.shareAsync(res.uri);
+      // Fetch the PDF and get the filename from Content-Disposition
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Could not download barcode. Please try again later.');
+      const contentDisposition = response.headers.get('Content-Disposition') || '';
+      let filename = `barcode-${id}.pdf`;
+      const match = contentDisposition.match(/filename="?([^";]+)"?/);
+      if (match && match[1]) filename = match[1];
+      const fileUri = FileSystem.cacheDirectory + filename;
+      const blob = await response.blob();
+      // Save blob to fileUri
+      const reader = new FileReader();
+      const fileWritePromise = new Promise((resolve, reject) => {
+        reader.onloadend = async () => {
+          const base64data = reader.result.split(',')[1];
+          await FileSystem.writeAsStringAsync(fileUri, base64data, { encoding: FileSystem.EncodingType.Base64 });
+          resolve();
+        };
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(blob);
+      await fileWritePromise;
+
+      if (Platform.OS === 'android' && FileSystem.StorageAccessFramework) {
+        // Let user pick location and save
+        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (!permissions.granted) throw new Error('Permission not granted to access storage.');
+        const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
+          permissions.directoryUri,
+          filename,
+          'application/pdf'
+        );
+        const fileData = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.Base64 });
+        await FileSystem.writeAsStringAsync(destUri, fileData, { encoding: FileSystem.EncodingType.Base64 });
+        Alert.alert('Success', 'Barcode PDF saved!');
+      } else {
+        await Sharing.shareAsync(fileUri);
+      }
     } catch (e) {
       if (setError) setError(getErrorMessage(e));
     } finally {

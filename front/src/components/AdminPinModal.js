@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import { SPACING, BORDER_RADIUS, COLORS } from '../StyleConstants';
+import * as Animatable from 'react-native-animatable';
 
 export default function AdminPinModal({ visible, onSubmit, onClose }) {
   const [pin, setPin] = useState('');
@@ -27,7 +28,14 @@ export default function AdminPinModal({ visible, onSubmit, onClose }) {
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
-        <View style={styles.modal}>
+        <Animatable.View
+          animation="fadeInUp"
+          duration={650}
+          delay={40}
+          style={styles.modalContent}
+          onStartShouldSetResponder={() => true}
+          onResponderStart={e => e.stopPropagation && e.stopPropagation()}
+        >
           <Text style={styles.title}>Enter Admin PIN</Text>
           <TextInput
             style={styles.input}
@@ -47,7 +55,7 @@ export default function AdminPinModal({ visible, onSubmit, onClose }) {
               <Text style={styles.buttonText}>Submit</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Animatable.View>
       </View>
     </Modal>
   );
@@ -58,6 +66,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: 300,
+    backgroundColor: COLORS.backgroundPrimary || '#fff',
+    borderRadius: BORDER_RADIUS.base || 12,
+    padding: SPACING.lg || 24,
     alignItems: 'center',
   },
   modal: {

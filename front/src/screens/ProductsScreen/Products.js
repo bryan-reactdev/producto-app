@@ -1,8 +1,8 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomHeaderSearchBar from "../../components/CustomHeaderSearchBar";
 import { useEffect, useState, useCallback } from "react";
-import { useFocusEffect } from '@react-navigation/native';
-import { Text, View, BackHandler, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import { Text, View, BackHandler, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import styles from './ProductsStyle'
 import GroupRow from "../../components/GroupRow";
 import ProductRow from "../../components/ProductRow";
@@ -10,8 +10,10 @@ import useFetch from "../../hooks/useFetch";
 import useGroups from "../../hooks/useGroups";
 import { FontAwesome6 } from '@expo/vector-icons';
 import GroupCreateModal from '../../components/GroupCreateModal';
+import GroupRenameModal from '../../components/GroupRenameModal';
 import useAdmin from "../../hooks/useAdmin";
 import ErrorMessage from '../../components/ErrorMessage';
+import * as Animatable from 'react-native-animatable';
 
 export default function Products({navigation}){
     // --- Group Stuff ---
@@ -24,8 +26,12 @@ export default function Products({navigation}){
 
     // Modal state
     const [modalVisible, setModalVisible] = useState(false);
+    const [renameModalVisible, setRenameModalVisible] = useState(false);
+    const [groupToRename, setGroupToRename] = useState(null);
+    const [deletingGroupId, setDeletingGroupId] = useState(null);
 
     const {isAdmin} = useAdmin();
+    const isFocused = useIsFocused();
 
     // Sync local products state with fetched data
     useEffect(() => {
@@ -51,6 +57,7 @@ export default function Products({navigation}){
     }, [selectedGroup]);
 
     useEffect(() => {
+        if (!isFocused) return;
         const backHandler = BackHandler.addEventListener(
             'hardwareBackPress',
             handleBackPress
@@ -67,7 +74,7 @@ export default function Products({navigation}){
             backHandler.remove();
             unsubscribe();
         };
-    }, [navigation, handleBackPress, selectedGroup]);
+    }, [navigation, handleBackPress, selectedGroup, isFocused]);
 
     // Filtered lists
     const filteredGroups = groups ? groups.filter(g => g.name.toLowerCase().includes(searchQuery.toLowerCase())) : [];
@@ -84,6 +91,24 @@ export default function Products({navigation}){
     // If useGroups exposes a refetch, call it here. Otherwise, rely on re-render or manual refresh.
     const handleGroupCreated = () => {
         if (refetch) refetch();
+    };
+
+    const handleDeleteGroup = async (group) => {
+      setDeletingGroupId(group.id);
+      try {
+        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.182:3000'}/api/groups/${group.id}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) {
+          Alert.alert('Error', 'Failed to delete group.');
+        } else {
+          if (refetch) refetch();
+        }
+      } catch (e) {
+        Alert.alert('Error', 'Failed to delete group.');
+      } finally {
+        setDeletingGroupId(null);
+      }
     };
 
     // --- Shared loading component ---
@@ -110,42 +135,26 @@ export default function Products({navigation}){
     );
 
     // --- Product error/empty handling ---
-    if (selectedGroup && areProductsLoading) {
-        return renderLoading(selectedGroup.name);
-    }
-
-    if (selectedGroup && productsError) {
-        return (
-            <SafeAreaView style={styles.screen}>
-                <CustomHeaderSearchBar 
-                    nav={navigation}
-                    title={selectedGroup.name}
-                    searchValue={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    onBackPress={() => setSelectedGroup(null)}
-                />
-                <View style={styles.container}>
-                    <ErrorMessage message={productsError} onRetry={refetchProducts} />
-                </View>
-            </SafeAreaView>
-        );
-    }
-
-    if (selectedGroup && !areProductsLoading && !productsError && filteredProducts.length === 0) {
-        return (
-            <SafeAreaView style={styles.screen}>
-                <CustomHeaderSearchBar 
-                    nav={navigation}
-                    title={selectedGroup.name}
-                    searchValue={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    onBackPress={() => setSelectedGroup(null)}
-                />
-                <View style={styles.container}>
-                    <ErrorMessage message="No products found in this group." />
-                </View>
-            </SafeAreaView>
-        );
+    if (selectedGroup) {
+        if (areProductsLoading) {
+            return renderLoading(selectedGroup.name);
+        }
+        if (productsError) {
+            return (
+                <SafeAreaView style={styles.screen}>
+                    <CustomHeaderSearchBar 
+                        nav={navigation}
+                        title={selectedGroup.name}
+                        searchValue={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        onBackPress={() => setSelectedGroup(null)}
+                    />
+                    <View style={styles.container}>
+                        <ErrorMessage message={productsError} onRetry={refetchProducts} />
+                    </View>
+                </SafeAreaView>
+            );
+        }
     }
 
     // --- Group loading handling ---
@@ -165,24 +174,6 @@ export default function Products({navigation}){
                 />
                 <View style={styles.container}>
                     <ErrorMessage message={groupsError} onRetry={refetch} />
-                </View>
-            </SafeAreaView>
-        );
-    }
-
-    // Show message if no groups found (but only if not loading and no error)
-    if (!areGroupsLoading && !groupsError && (!groups || groups.length === 0)) {
-        return (
-            <SafeAreaView style={styles.screen}>
-                <CustomHeaderSearchBar 
-                    nav={navigation} 
-                    title="GROUPS"
-                    searchValue={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    onBackPress={() => navigation.goBack()}
-                />
-                <View style={styles.container}>
-                    <ErrorMessage message="No groups found." />
                 </View>
             </SafeAreaView>
         );
@@ -222,12 +213,20 @@ export default function Products({navigation}){
                                     </TouchableOpacity>
                                 }
                                 {filteredGroups.map((group, index) => (
-                                    <GroupRow
-                                        key={index}
-                                        name={group.name}
-                                        count={group.count}
-                                        onPress={() => { setSelectedGroup(group); setSearchQuery(""); }}
-                                    />
+                                    <Animatable.View
+                                        key={group.id}
+                                        animation="slideInUp"
+                                        duration={650}
+                                        delay={index * 60}
+                                    >
+                                        <GroupRow
+                                            name={group.name}
+                                            count={group.count}
+                                            onPress={() => { setSelectedGroup(group); setSearchQuery(""); }}
+                                            onRename={() => { setGroupToRename(group); setRenameModalVisible(true); }}
+                                            onDelete={() => handleDeleteGroup(group)}
+                                        />
+                                    </Animatable.View>
                                 ))}
                             </>
                         )
@@ -242,15 +241,21 @@ export default function Products({navigation}){
                                     </TouchableOpacity>
                                 }
                                 {filteredProducts.map((product, index) => (
-                                    <ProductRow
-                                        key={index}
-                                        id={product.id}
-                                        name={product.name}
-                                        price={product.price}
-                                        image={product.image_url}
-                                        barcode={product.barcode}
-                                        onProductDeleted={handleProductDeleted}
-                                    />
+                                    <Animatable.View
+                                        key={product.id}
+                                        animation="slideInUp"
+                                        duration={650}
+                                        delay={index * 60}
+                                    >
+                                        <ProductRow
+                                            id={product.id}
+                                            name={product.name}
+                                            price={product.price}
+                                            image={product.image_url}
+                                            barcode={product.barcode}
+                                            onProductDeleted={handleProductDeleted}
+                                        />
+                                    </Animatable.View>
                                 ))}
                             </>
                         )
@@ -262,6 +267,12 @@ export default function Products({navigation}){
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
                 onCreate={handleGroupCreated}
+            />
+            <GroupRenameModal
+                visible={renameModalVisible}
+                onClose={() => setRenameModalVisible(false)}
+                group={groupToRename}
+                onRenamed={() => { setRenameModalVisible(false); setGroupToRename(null); if (refetch) refetch(); }}
             />
         </SafeAreaView>
     )

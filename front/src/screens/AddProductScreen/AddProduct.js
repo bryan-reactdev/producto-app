@@ -10,6 +10,7 @@ import GroupRow from '../../components/GroupRow'
 import { getErrorMessage, retryWithBackoff } from '../../utils/errorHandling'
 import ErrorMessage from '../../components/ErrorMessage'
 import SuccessMessage from '../../components/SuccessMessage'
+import * as Animatable from 'react-native-animatable';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.182:3000';
 
@@ -111,7 +112,7 @@ export default function AddProduct({navigation, route}){
 
             <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Image input */}
-                <View style={styles.imageInputContainer}>
+                <Animatable.View animation="slideInUp" duration={650} delay={60} style={styles.imageInputContainer}>
                     <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
                         {imageUri
                             ? <Image style={styles.imagePicked} source={{ uri: imageUri }}/>
@@ -122,10 +123,10 @@ export default function AddProduct({navigation, route}){
                         }
 
                     </TouchableOpacity>
-                </View>
+                </Animatable.View>
 
                 {/* Dropdown */}
-                <View style={styles.inputContainer}>
+                <Animatable.View animation="slideInUp" duration={650} delay={120} style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Group</Text>
                     {/* Input */}
                     <TouchableOpacity style={styles.input} onPress={() => setModalVisible(true)}>
@@ -134,30 +135,27 @@ export default function AddProduct({navigation, route}){
                             : <GroupRow name={selectedGroup.name} count={selectedGroup.count} onPress={() => setModalVisible(true)} hideIcon={true}/>
                         }
                     </TouchableOpacity>
-                    
                     {/* Modal */}
                     <GroupPickerModal visible={modalVisible} onClose={() => setModalVisible(false)} onSelect={group =>{
                         setSelectedGroup(group);
                         setModalVisible(false);
                     }} />
-                </View>
+                </Animatable.View>
 
                 {/* Name input */}
-                <View style={styles.inputContainer}>
+                <Animatable.View animation="slideInUp" duration={650} delay={180} style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Name</Text>
-
                     <TextInput
                         style={styles.input}
                         placeholder="Enter product name"
                         value={name}
                         onChangeText={setName}
                     />
-                </View>
+                </Animatable.View>
 
                 {/* Price input */}
-                <View style={styles.inputContainer}>
+                <Animatable.View animation="slideInUp" duration={650} delay={240} style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Price</Text>
-
                     <TextInput
                         style={styles.input}
                         placeholder="Enter price"
@@ -165,18 +163,18 @@ export default function AddProduct({navigation, route}){
                         value={price}
                         onChangeText={setPrice}
                     />
-                </View>
+                </Animatable.View>
 
                 {/* Barcode input */}
                 {passedBarcode &&
-                    <View style={styles.inputContainer}>
+                    <Animatable.View animation="slideInUp" duration={650} delay={300} style={styles.inputContainer}>
                         <Text style={styles.inputLabel}>Custom Barcode</Text>
                         <TextInput
                             style={[styles.input, { backgroundColor: '#f0f0f0', color: '#888' }]}
                             value={passedBarcode}
                             editable={false}
                         />
-                    </View>
+                    </Animatable.View>
                 }
 
                 {success ? (

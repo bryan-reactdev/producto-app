@@ -33,3 +33,30 @@ exports.createProductGroup = async (req, res) => {
     res.status(500).json({ message: 'Failed to create group' });
   }
 }; 
+
+exports.updateProductGroup = async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: 'Group name is required' });
+    }
+    const updatedGroup = await ProductGroup.update(groupId, { name: name.trim() });
+    res.json(updatedGroup);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update group' });
+  }
+}; 
+
+exports.deleteProductGroup = async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    // Delete all products in this group
+    await Product.deleteByGroupId(groupId);
+    // Delete the group
+    await ProductGroup.delete(groupId);
+    res.json({ message: 'Group and its products deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete group and its products' });
+  }
+}; 

@@ -7,6 +7,7 @@ import { useState } from 'react';
 import ImageViewing from 'react-native-image-viewing';
 import useAdmin from '../hooks/useAdmin';
 import ErrorMessage from './ErrorMessage';
+import * as Animatable from 'react-native-animatable';
 
 export default function ProductDetailsModal({ visible, onClose, product, onProductDeleted }) {
   if (!product) return null;
@@ -34,10 +35,13 @@ export default function ProductDetailsModal({ visible, onClose, product, onProdu
         style={styles.overlay}
         onPress={handleClose}
       >
-        <TouchableOpacity
-          activeOpacity={1}
+        <Animatable.View
+          animation="fadeInUp"
+          duration={650}
+          delay={40}
           style={styles.modalContent}
-          onPress={e => e.stopPropagation && e.stopPropagation()}
+          onStartShouldSetResponder={() => true}
+          onResponderStart={e => e.stopPropagation && e.stopPropagation()}
         >
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <FontAwesome6 style={styles.closeButtonIcon} name="xmark" size={24} color={COLORS.textPrimary} />
@@ -91,7 +95,7 @@ export default function ProductDetailsModal({ visible, onClose, product, onProdu
             swipeToCloseEnabled={true}
             doubleTapToZoomEnabled={true}
           />
-        </TouchableOpacity>
+        </Animatable.View>
       </TouchableOpacity>
     </Modal>
   );

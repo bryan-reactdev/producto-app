@@ -1,8 +1,10 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
-import { BORDER_RADIUS, BORDER_WIDTH, COLORS, FONT_SIZES, SPACING } from "../StyleConstants"
+import { StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native"
+import { BORDER_RADIUS, BORDER_WIDTH, COLORS, FONT_SIZES, SPACING, SIZING } from "../StyleConstants"
 import { FontAwesome6 } from "@expo/vector-icons"
+import useAdmin from '../hooks/useAdmin';
 
-export default function GroupRow({name, count, onPress, hideIcon}){
+export default function GroupRow({name, count, onPress, hideIcon, onRename, onDelete}){
+    const { isAdmin } = useAdmin();
     return(
         <TouchableOpacity style={styles.groupRow} onPress={onPress}>
             <FontAwesome6 style={styles.groupRowIcon} name="box" size={32} color={COLORS.textPrimary}/>
@@ -12,9 +14,40 @@ export default function GroupRow({name, count, onPress, hideIcon}){
                 <Text style={styles.groupRowCount}>Products: {count}</Text>
             </View>
 
-            {!hideIcon &&
-                <FontAwesome6 style={styles.groupRowArrow} name="caret-right" size={32} color={COLORS.textPrimary}/>
-            }
+            {!hideIcon && (
+                <View style={styles.groupRowActions}>
+                    {isAdmin && (
+                        <>
+                        <TouchableOpacity
+                            style={styles.renameButton}
+                            onPress={e => {
+                                e.stopPropagation && e.stopPropagation();
+                                if (onRename) onRename();
+                            }}
+                        >
+                            <FontAwesome6 name="pen" size={FONT_SIZES.xs} color={COLORS.textPrimaryContrast} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.deleteButton}
+                            onPress={e => {
+                                e.stopPropagation && e.stopPropagation();
+                                Alert.alert(
+                                  'Delete Group',
+                                  'Are you sure you want to delete this group and all its products?',
+                                  [
+                                    { text: 'Cancel', style: 'cancel' },
+                                    { text: 'Delete', style: 'destructive', onPress: () => { if (onDelete) onDelete(); } }
+                                  ]
+                                );
+                            }}
+                        >
+                            <FontAwesome6 name="trash" size={FONT_SIZES.xs} color={COLORS.textDelete} />
+                        </TouchableOpacity>
+                        </>
+                    )}
+                    <FontAwesome6 style={styles.groupRowArrow} name="angle-right" size={FONT_SIZES.lg} color={COLORS.textPrimary}/>
+                </View>
+            )}
         </TouchableOpacity>
     )
 }
@@ -53,9 +86,33 @@ const styles = StyleSheet.create({
         fontFamily:'secondary-regular',
         color:COLORS.textSecondary,
     },
+    groupRowActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 'auto',
+        gap: 8,
+    },
     groupRowArrow:{
         display:'flex',
-
-        marginLeft:'auto'
-    }
+    },
+    renameButton: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: SIZING.xxs,
+        borderRadius: BORDER_RADIUS.xl,
+        backgroundColor: COLORS.buttonPrimary,
+        marginLeft: 4,
+    },
+    deleteButton: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: SIZING.xxs,
+        borderRadius: BORDER_RADIUS.xl,
+        backgroundColor: COLORS.buttonSecondary,
+        marginLeft: 4,
+    },
 })

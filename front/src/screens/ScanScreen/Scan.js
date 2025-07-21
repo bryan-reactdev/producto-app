@@ -11,6 +11,7 @@ import { FONT_SIZES, SIZING } from '../../StyleConstants'
 import { FontAwesome6 } from '@expo/vector-icons'
 import useAdmin from '../../hooks/useAdmin'
 import { getErrorMessage, retryWithBackoff } from '../../utils/errorHandling'
+import * as Animatable from 'react-native-animatable';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.182:3000';
 const CameraView = CameraModule.CameraView;
@@ -49,6 +50,13 @@ function CameraSection({ onBarCodeScanned }) {
                     barcodeScannerSettings={{ barcodeTypes: ['code128'] }}
                     onBarcodeScanned={onBarCodeScanned}
                 />
+                <Animatable.View
+                    animation="zoomIn"
+                    duration={400}
+                    delay={40}
+                    style={styles.animatedBorderOverlay}
+                    pointerEvents="none"
+                />
                 <Text style={styles.scannerContainerText}>Align the barcode within frame</Text>
             </View>
         </View>
@@ -68,15 +76,21 @@ function ProductSection({ product, onScanAgain, onProductDeleted }) {
     console.log('Product passed to ProductRow:', product); // Debug log
     return (
         <View style={styles.productContainer}>
-            <ProductRow
-                id={product.id}
-                name={product.name}
-                price={product.price}
-                image={product.image_url}
-                barcode={product.barcode}
-                onProductDeleted={onProductDeleted}
-                group={product.product_group?.name}
-            />
+            <Animatable.View
+                animation="fadeInUp"
+                duration={900}
+                key={product.id || product.barcode}
+            >
+                <ProductRow
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    image={product.image_url}
+                    barcode={product.barcode}
+                    onProductDeleted={onProductDeleted}
+                    group={product.product_group?.name}
+                />
+            </Animatable.View>
 
             <TouchableOpacity style={styles.scanAgainButton} onPress={onScanAgain}>
                 <FontAwesome6 style={styles.scanAgainButtonIcon} name="expand" size={32} color={'black'}/>
@@ -90,15 +104,16 @@ function ErrorSection({ error, isAdmin, onRegister, onScanAgain }) {
         <View style={styles.errorSection}>
             <Text style={styles.errorText}>{error}</Text>
             
-            {isAdmin 
-            ?
-                <TouchableOpacity style={styles.scanAgainButton} onPress={onRegister}>
-                    <FontAwesome6 style={styles.scanAgainButtonIcon} name="plus" size={32} color={'black'}/>
-                    <Text style={styles.scanAgainButtonText}>REGISTER PRODUCT</Text>
-                </TouchableOpacity>
-            :
-                <Text style={styles.errorText}>Only the admin can register a new product.</Text>
-            }
+            {error?.toLowerCase().includes('product not found') && (
+                isAdmin ? (
+                    <TouchableOpacity style={styles.scanAgainButton} onPress={onRegister}>
+                        <FontAwesome6 style={styles.scanAgainButtonIcon} name="plus" size={32} color={'black'}/>
+                        <Text style={styles.scanAgainButtonText}>REGISTER PRODUCT</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <Text style={styles.errorText}>Only the admin can register a new product.</Text>
+                )
+            )}
 
             <TouchableOpacity style={styles.scanAgainButton} onPress={onScanAgain}>
                 <FontAwesome6 style={styles.scanAgainButtonIcon} name="expand" size={32} color={'black'}/>
@@ -178,7 +193,9 @@ export default function Scan({navigation}){
         <SafeAreaView style={styles.screen}>
             <CustomHeader nav={navigation} title="Scan" />
             <View style={styles.container}>
-                {!scanned && <CameraSection onBarCodeScanned={handleBarCodeScanned} />}
+                {!scanned && (
+                    <CameraSection onBarCodeScanned={handleBarCodeScanned} />
+                )}
                 {loading && <LoadingSection />}
                 {product && !loading && (
                     <ProductSection

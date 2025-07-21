@@ -83,4 +83,8 @@ export default StyleSheet.create({
         fontSize:FONT_SIZES.base,
         color: COLORS.textPrimary,
     },
+    animatableWrapper: {
+        width: '100%',
+        alignItems: 'center',
+    },
 });
