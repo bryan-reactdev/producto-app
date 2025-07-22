@@ -1,25 +1,28 @@
 // backend/controllers/productGroupController.js
+const ProductGroupMembership = require('../models/ProductGroupMembership');
 const ProductGroup = require('../models/ProductGroup');
 const Product = require('../models/Product');
 
 exports.getAllProductGroups = async (req, res) => {
   try {
-    const groups = await ProductGroup.findAll();
-    res.json(groups);
+    const groupsWithProducts = await ProductGroup.findAllWithProducts();
+
+    res.json(groupsWithProducts);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch product groups' });
+    console.log(err)
   }
 };
 
 exports.getProductsByGroupId = async (req, res) => {
   try {
     const groupId = req.params.id;
-    const products = await Product.findByGroupId(groupId);
+    const products = await ProductGroupMembership.getProductsByGroupId(groupId);
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch products for this group' });
   }
-}; 
+};
 
 exports.createProductGroup = async (req, res) => {
   try {
@@ -51,12 +54,15 @@ exports.updateProductGroup = async (req, res) => {
 exports.deleteProductGroup = async (req, res) => {
   try {
     const groupId = req.params.id;
-    // Delete all products in this group
-    await Product.deleteByGroupId(groupId);
-    // Delete the group
+
+    // Delete all group memberships
+    await ProductGroupMembership.deleteByGroupId(groupId);
+
+    // Delete the group itself
     await ProductGroup.delete(groupId);
-    res.json({ message: 'Group and its products deleted' });
+
+    res.json({ message: 'Group deleted' });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to delete group and its products' });
+    res.status(500).json({ message: 'Failed to delete group' });
   }
 }; 

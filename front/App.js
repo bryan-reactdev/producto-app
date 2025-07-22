@@ -3,9 +3,11 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
 import Home from "./src/screens/HomeScreen/Home";
 import Scan from "./src/screens/ScanScreen/Scan";
-import Products from "./src/screens/ProductsScreen/Products";
+import Groups from "./src/screens/ProductsScreen/Groups";
 import AddProduct from "./src/screens/AddProductScreen/AddProduct";
 import { AdminProvider } from './src/contexts/AdminContext';
+import AllProducts from "./src/screens/ProductsScreen/AllProducts";
+import ProductAssign from "./src/screens/ProductsScreen/ProductAssign";
 
 const Stack = createNativeStackNavigator();
 
@@ -36,7 +38,9 @@ export default function App(){
         >
           <Stack.Screen name = "Home" component={Home}/>
           <Stack.Screen name = "Scan" component={Scan}/>
-          <Stack.Screen name = "Products" component={Products}/>
+          <Stack.Screen name = "AllProducts" component={AllProducts}/>
+          <Stack.Screen name = "ProductAssign" component={ProductAssign}/>
+          <Stack.Screen name = "Groups" component={Groups}/>
           <Stack.Screen name = "AddProduct" component={AddProduct}/>
         </Stack.Navigator>
       </NavigationContainer>

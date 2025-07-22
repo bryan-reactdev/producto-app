@@ -1,5 +1,6 @@
 // backend/models/ProductGroup.js
 const db = require('../config/database');
+const ProductGroupMembership = require('./ProductGroupMembership');
 
 class ProductGroup {
   static async create({ name }) {
@@ -11,12 +12,17 @@ class ProductGroup {
   }
 
   static async findAll() {
-    const [rows] = await db.execute('SELECT * FROM product_group ORDER BY id DESC');
+    const [rows] = await db.execute(
+      'SELECT * FROM product_group ORDER BY id DESC'
+    );
     return rows;
   }
 
   static async findById(id) {
-    const [rows] = await db.execute('SELECT * FROM product_group WHERE id = ?', [id]);
+    const [rows] = await db.execute(
+      'SELECT * FROM product_group WHERE id = ?',
+      [id]
+    );
     return rows[0];
   }
 
@@ -33,19 +39,24 @@ class ProductGroup {
     return { id };
   }
 
-  static async incrementCount(id) {
-    await db.execute(
-      'UPDATE product_group SET count = count + 1 WHERE id = ?',
-      [id]
+  static async findAllWithProducts() {
+    // Fetch all groups first
+    const groups = await this.findAll();
+
+    // For each group, fetch products related to it
+    const groupsWithProducts = await Promise.all(
+      groups.map(async (group) => {
+        const products = await ProductGroupMembership.getProductsByGroupId(group.id);
+        return {
+          ...group,
+          products,
+        };
+      })
     );
+
+    return groupsWithProducts;
   }
 
-  static async decrementCount(id) {
-    await db.execute(
-      'UPDATE product_group SET count = GREATEST(count - 1, 0) WHERE id = ?',
-      [id]
-    );
-  }
 }
 
-module.exports = ProductGroup; 
+module.exports = ProductGroup;

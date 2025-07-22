@@ -7,7 +7,7 @@ import { useProductActions } from '../hooks/useProductActions';
 import useAdmin from '../hooks/useAdmin';
 import ErrorMessage from './ErrorMessage';
 
-export default function ProductRow({image, name, price, barcode, id, onProductDeleted, group}){
+export default function ProductRow({image, name, price, barcode, id, onProductDeleted, group, handleSelect, isSelected}){
     const [modalVisible, setModalVisible] = useState(false);
     const [error, setError] = useState("");
     const { downloadBarcode, deleteProduct, downloading, deleting } = useProductActions({ id, name, onProductDeleted, setError });
@@ -28,7 +28,16 @@ export default function ProductRow({image, name, price, barcode, id, onProductDe
 
     return(
         <>
-        <TouchableOpacity style={styles.productRow} onPress={handleOpen}>
+        <TouchableOpacity
+            style={[styles.productRow, isSelected && styles.productRowSelected]}
+            onPress={() => {
+                if (handleSelect) {
+                    handleSelect();
+                } else {
+                    handleOpen();
+                }
+            }}
+        >
             <View style={styles.productRowImage}>
                 {image
                     ? <Image source={{ uri: image }} style={styles.productRowImagePic} resizeMode="cover" />
@@ -53,26 +62,27 @@ export default function ProductRow({image, name, price, barcode, id, onProductDe
                         {barcode}
                     </Text>
 
-                    <View style={styles.productRowActions}>
-                        <TouchableOpacity style={styles.productRowActionsButton} onPress={handleDownloadBarcode} disabled={downloading}>
-                            {downloading ? (
-                                <ActivityIndicator color={'#fff'} size={FONT_SIZES.base}/>
-                            ) : (
-                                <FontAwesome6 style={styles.productRowActionsButtonIcon} name="download" size={32} color={COLORS.textPrimary}/>
-                            )}
-                            <Text style={styles.productRowActionsSaveText}>Barcode</Text>
-                        </TouchableOpacity>
-                        {isAdmin && (
-                            <TouchableOpacity style={styles.productRowActionsButtonDelete} onPress={handleDeleteProduct} disabled={deleting}>
-                                {deleting ? (
-                                    <ActivityIndicator color={COLORS.textDelete} size={20} />
+                    {!handleSelect &&
+                        <View style={styles.productRowActions}>
+                            <TouchableOpacity style={styles.productRowActionsButton} onPress={handleDownloadBarcode} disabled={downloading}>
+                                {downloading ? (
+                                    <ActivityIndicator color={'#fff'} size={FONT_SIZES.base}/>
                                 ) : (
-                                    <FontAwesome6 style={styles.productRowActionsButtonIconDelete} name="trash" size={32} color={COLORS.textPrimary}/>
+                                    <FontAwesome6 style={styles.productRowActionsButtonIcon} name="download" size={32} color={COLORS.textPrimary}/>
                                 )}
+                                <Text style={styles.productRowActionsSaveText}>Barcode</Text>
                             </TouchableOpacity>
-                        )}
-                    </View>
-                    
+                            {isAdmin && (
+                                <TouchableOpacity style={styles.productRowActionsButtonDelete} onPress={handleDeleteProduct} disabled={deleting}>
+                                    {deleting ? (
+                                        <ActivityIndicator color={COLORS.textDelete} size={20} />
+                                    ) : (
+                                        <FontAwesome6 style={styles.productRowActionsButtonIconDelete} name="trash" size={32} color={COLORS.textPrimary}/>
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    }
                 </View>
                 {error ? <ErrorMessage message={error} style={{ marginBottom: 8 }} /> : null}
             </View>
@@ -108,6 +118,10 @@ const styles = StyleSheet.create({
         borderColor: COLORS.borderPrimary,
         backgroundColor: COLORS.backgroundPrimary,
         position: 'relative',
+    },
+    productRowSelected: {
+        backgroundColor: COLORS.backgroundSecondary || '#e0e0ff', // fallback color if not defined
+        borderColor: COLORS.primary || '#314ce0',
     },
     productRowImage:{
         display:'flex',

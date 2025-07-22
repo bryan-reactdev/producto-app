@@ -4,22 +4,17 @@ import styles from './AddProductStyle'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { FontAwesome6 } from '@expo/vector-icons'
 import { useState } from 'react'
-import GroupPickerModal from '../../components/GroupPickerModal'
 import * as ImagePicker from 'expo-image-picker'
-import GroupRow from '../../components/GroupRow'
 import { getErrorMessage, retryWithBackoff } from '../../utils/errorHandling'
 import ErrorMessage from '../../components/ErrorMessage'
 import SuccessMessage from '../../components/SuccessMessage'
 import * as Animatable from 'react-native-animatable';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.182:3000';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
 
 export default function AddProduct({navigation, route}){
-    const passedGroup = route?.params?.selectedGroup || null;
     const passedBarcode = route?.params?.barcode || null;
 
-    const [selectedGroup, setSelectedGroup] = useState(passedGroup);
-    const [modalVisible, setModalVisible] = useState(false);
     const [imageUri, setImageUri] = useState(null);
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
@@ -39,7 +34,7 @@ export default function AddProduct({navigation, route}){
     };
 
     const handleRegister = async () => {
-        if (!selectedGroup || !name || !price) {
+        if (!name || !price) {
             setError("Please fill all fields.");
             setSuccess(false);
             return;
@@ -80,7 +75,6 @@ export default function AddProduct({navigation, route}){
                 body: JSON.stringify({
                     name,
                     price: parseFloat(price),
-                    product_group_id: selectedGroup.id,
                     image_url: imageUrl,
                     ...(passedBarcode ? { barcode: passedBarcode } : {}),
                 }),
@@ -90,7 +84,6 @@ export default function AddProduct({navigation, route}){
                 setSuccess(true);
                 setError("");
                 setName(""); setPrice("");
-                if (!passedGroup) setSelectedGroup(""); 
                 setImageUri(null);
                 if (passedBarcode) navigation.goBack();
             } else {
@@ -123,23 +116,6 @@ export default function AddProduct({navigation, route}){
                         }
 
                     </TouchableOpacity>
-                </Animatable.View>
-
-                {/* Dropdown */}
-                <Animatable.View animation="slideInUp" duration={650} delay={120} style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Group</Text>
-                    {/* Input */}
-                    <TouchableOpacity style={styles.input} onPress={() => setModalVisible(true)}>
-                        {!selectedGroup
-                            ? <Text style={styles.inputPlaceholder}> Select a group...</Text>
-                            : <GroupRow name={selectedGroup.name} count={selectedGroup.count} onPress={() => setModalVisible(true)} hideIcon={true}/>
-                        }
-                    </TouchableOpacity>
-                    {/* Modal */}
-                    <GroupPickerModal visible={modalVisible} onClose={() => setModalVisible(false)} onSelect={group =>{
-                        setSelectedGroup(group);
-                        setModalVisible(false);
-                    }} />
                 </Animatable.View>
 
                 {/* Name input */}

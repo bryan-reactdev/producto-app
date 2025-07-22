@@ -15,7 +15,7 @@ import useAdmin from "../../hooks/useAdmin";
 import ErrorMessage from '../../components/ErrorMessage';
 import * as Animatable from 'react-native-animatable';
 
-export default function Products({navigation}){
+export default function Groups({navigation}){
     // --- Group Stuff ---
     const { groups, areGroupsLoading, groupsError, refetch } = useGroups();
     const [selectedGroup, setSelectedGroup] = useState(null);
@@ -41,10 +41,15 @@ export default function Products({navigation}){
     // Refetch products when screen regains focus and a group is selected
     useFocusEffect(
         useCallback(() => {
-            if (selectedGroup && refetchProducts) {
+            if (selectedGroup && refetchProducts && refetch) {
                 refetchProducts();
+
+                refetch().then(() => {
+                    const updated = groups?.find(g => g.id === selectedGroup.id);
+                    if (updated) setSelectedGroup(updated);
+                  });
             }
-        }, [selectedGroup, refetchProducts])
+        }, [refetchProducts])
     );
 
     // Handle back button press
@@ -96,7 +101,7 @@ export default function Products({navigation}){
     const handleDeleteGroup = async (group) => {
       setDeletingGroupId(group.id);
       try {
-        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.182:3000'}/api/groups/${group.id}`, {
+        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000'}/api/groups/${group.id}`, {
           method: 'DELETE',
         });
         if (!res.ok) {
@@ -167,7 +172,7 @@ export default function Products({navigation}){
             <SafeAreaView style={styles.screen}>
                 <CustomHeaderSearchBar 
                     nav={navigation} 
-                    title="GROUPS"
+                    title="PROJECTS"
                     searchValue={searchQuery}
                     onSearchChange={setSearchQuery}
                     onBackPress={() => navigation.goBack()}
@@ -184,7 +189,7 @@ export default function Products({navigation}){
             <CustomHeaderSearchBar 
                 nav={navigation} 
                 title={!selectedGroup
-                    ? "GROUPS"
+                    ? "PROJECTS"
                     : selectedGroup.name
                 }
                 searchValue={searchQuery}
@@ -208,7 +213,7 @@ export default function Products({navigation}){
                                     <TouchableOpacity style={styles.createGroupButton} onPress={() => setModalVisible(true)}>
                                         <FontAwesome6 style={styles.createGroupButtonIcon} name="plus" size={24} color={'black'} />
                                         <Text style={styles.createGroupButtonLabel}>
-                                            Create a new Group
+                                            Create a new Project
                                         </Text>
                                     </TouchableOpacity>
                                 }
@@ -233,10 +238,10 @@ export default function Products({navigation}){
                         : (
                             <>
                                 {isAdmin &&
-                                    <TouchableOpacity style={styles.createGroupButton} onPress={() => navigation.navigate('AddProduct', { selectedGroup })}>
+                                    <TouchableOpacity style={styles.createGroupButton} onPress={() => navigation.navigate('ProductAssign', { selectedGroup })}>
                                         <FontAwesome6 style={styles.createGroupButtonIcon} name="plus" size={24} color={'black'} />
                                         <Text style={styles.createGroupButtonLabel}>
-                                            Create a new Product
+                                            Assign Products
                                         </Text>
                                     </TouchableOpacity>
                                 }

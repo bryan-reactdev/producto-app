@@ -24,9 +24,10 @@ export default function CustomHeader({nav, title = "Page", searchValue, onSearch
                 <TextInput 
                     ref={inputRef}
                     style={styles.searchBarInput} 
-                    placeholder="Search a product or group"
+                    placeholder="Search a product or project"
                     value={searchValue}
                     onChangeText={onSearchChange}
+                    placeholderTextColor={COLORS.textSecondary}
                 />
             </View>
         </View>

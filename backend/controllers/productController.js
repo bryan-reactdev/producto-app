@@ -1,3 +1,4 @@
+const ProductGroupMembership = require('../models/ProductGroupMembership');
 const Product = require('../models/Product');
 const path = require('path');
 const fs = require('fs');
@@ -77,8 +78,15 @@ const productController = {
     try {
       if (!validateRequiredFields(req, res, ['name', 'price'])) return;
 
-      const { name, price, barcode, image_url, product_group_id } = req.body;
-      const product = await Product.create({ name, price, barcode, image_url, product_group_id });
+      const { name, price, barcode, image_url, group_ids = [] } = req.body;
+
+      const product = await Product.create({ name, price, barcode, image_url });
+
+      // Associate with groups if any are provided
+      for (const groupId of group_ids) {
+        await ProductGroupMembership.addProductToGroup(product.id, groupId);
+      }
+
       res.status(201).json(product);
     } catch (error) {
       handleDatabaseError(error, res, 'creating product');
@@ -86,22 +94,35 @@ const productController = {
   },
 
   // Update product
-  async updateProduct(req, res) {
-    try {
-      const { id } = req.params;
-      
-      if (!validateRequiredFields(req, res, ['name', 'price'])) return;
-      
-      const existingProduct = await checkProductExists(id, res);
-      if (!existingProduct) return;
+ async updateProduct(req, res) {
+  try {
+    const { id } = req.params;
 
-      const { name, price } = req.body;
-      const product = await Product.update(id, { name, price });
-      res.json(product);
-    } catch (error) {
-      handleDatabaseError(error, res, 'updating product');
+    if (!validateRequiredFields(req, res, ['name', 'price'])) return;
+
+    const existingProduct = await checkProductExists(id, res);
+    if (!existingProduct) return;
+
+    const { name, price, group_ids } = req.body;
+
+    const updatedProduct = await Product.update(id, { name, price });
+
+    // Update group associations if group_ids provided
+    if (Array.isArray(group_ids)) {
+      // Clear old memberships
+      await ProductGroupMembership.removeAllGroupsForProduct(id);
+
+      // Add new memberships
+      for (const groupId of group_ids) {
+        await ProductGroupMembership.addProductToGroup(id, groupId);
+      }
     }
-  },
+
+    res.json(updatedProduct);
+  } catch (error) {
+    handleDatabaseError(error, res, 'updating product');
+  }
+},
 
   // Delete product
   async deleteProduct(req, res) {
@@ -124,6 +145,23 @@ const productController = {
       res.json({ message: 'Product deleted successfully' });
     } catch (error) {
       handleDatabaseError(error, res, 'deleting product');
+    }
+  },
+
+  async assignGroupToProducts (req, res){
+    const { group_id, product_ids } = req.body;
+
+    if (!group_id || !Array.isArray(product_ids)) {
+      return res.status(400).json({ error: 'Invalid group_id or product_ids' });
+    }
+  
+    try {
+      await ProductGroupMembership.addMultipleProductsToGroup(group_id, product_ids);
+  
+      res.status(200).json({ message: 'Group assigned to products successfully' });
+    } catch (error) {
+      console.error('Error assigning group to products:', error);
+      res.status(500).json({ error: 'Database error while assigning group' });
     }
   }
 };

@@ -316,4 +316,7 @@ router.delete('/delete-image/:filename', async (req, res) => {
   }
 });
 
+// POST - Assign Products to a group
+router.post('/assign-group', productController.assignGroupToProducts);
+
 module.exports = router; 

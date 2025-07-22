@@ -31,6 +31,7 @@ export default StyleSheet.create({
         display:'flex',
         alignItems:'center',
         width:'80%',
+        height:100,
         
         borderWidth: BORDER_WIDTH.sm,
         borderRadius: BORDER_RADIUS.base,
@@ -41,16 +42,16 @@ export default StyleSheet.create({
     menuButtonIcon:{
         marginTop:SPACING.base,
 
-        fontSize:FONT_SIZES.xxxl,
+        fontSize:FONT_SIZES.xxl,
     },
     menuButtonText:{
         includeFontPadding: false,
 
-        marginTop:SPACING.base,
+        marginTop:SPACING.xs,
         marginBottom:SPACING.base,
         
         fontFamily:'primary-medium',
-        fontSize:FONT_SIZES.base,
+        fontSize:FONT_SIZES.sm,
         color: COLORS.textPrimary,
     },
     menuAdminButton:{
@@ -74,13 +75,11 @@ export default StyleSheet.create({
         color: COLORS.textPrimary,
     },
     menuAdminButtonText:{
-        includeFontPadding: false,
-
         marginTop:SPACING.base,
         marginBottom:SPACING.base,
         
         fontFamily:'primary-medium',
-        fontSize:FONT_SIZES.base,
+        fontSize:FONT_SIZES.sm,
         color: COLORS.textPrimary,
     },
     animatableWrapper: {

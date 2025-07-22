@@ -5,11 +5,45 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { getErrorMessage, retryWithBackoff } from '../utils/errorHandling';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.182:3000';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
 
 export function useProductActions({ id, name, onProductDeleted, setError }) {
   const [downloading, setDownloading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const assignGroupToProducts = (groupId, productIds) => {
+    if (!groupId || !Array.isArray(productIds) || productIds.length === 0) return;
+  
+    Alert.alert(
+      'Assign Group',
+      `Are you sure you want to assign this group to ${productIds.length} product(s)?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Assign',
+          style: 'default',
+          onPress: async () => {
+            setAssigning(true); // you should define this state like setDeleting
+            try {
+              const res = await retryWithBackoff(() =>
+                fetch(`${API_BASE}/api/products/assign-group`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ group_id: groupId, product_ids: productIds }),
+                })
+              );
+              if (!res.ok) throw new Error('Could not assign group to products. Please try again later.');
+              if (onGroupAssigned) onGroupAssigned(groupId, productIds); // your callback if needed
+            } catch (e) {
+              if (setError) setError(getErrorMessage(e));
+            } finally {
+              setAssigning(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const downloadBarcode = async () => {
     if (!id) return;
@@ -87,5 +121,5 @@ export function useProductActions({ id, name, onProductDeleted, setError }) {
     );
   };
 
-  return { downloadBarcode, deleteProduct, downloading, deleting };
+  return { downloadBarcode, assignGroupToProducts, deleteProduct, downloading, deleting };
 } 

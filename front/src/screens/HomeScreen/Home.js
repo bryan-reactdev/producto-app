@@ -35,9 +35,16 @@ export default function Home({ navigation }){
                 </Animatable.View>
 
                 <Animatable.View animation="slideInLeft" delay={120} duration={650} easing="ease-out-cubic" style={styles.animatableWrapper}>
-                    <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Products')}>
+                    <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('AllProducts')}>
                         <FontAwesome6 style={styles.menuButtonIcon} name="box" size={32} color={'#000'}/>
-                        <Text style={styles.menuButtonText}>View Product Groups</Text>
+                        <Text style={styles.menuButtonText}>View Products</Text>
+                    </TouchableOpacity>
+                </Animatable.View>
+                
+                <Animatable.View animation="slideInLeft" delay={120} duration={650} easing="ease-out-cubic" style={styles.animatableWrapper}>
+                    <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Groups')}>
+                        <FontAwesome6 style={styles.menuButtonIcon} name="sheet-plastic" size={32} color={'#000'}/>
+                        <Text style={styles.menuButtonText}>View Projects</Text>
                     </TouchableOpacity>
                 </Animatable.View>
 
@@ -72,6 +79,7 @@ export default function Home({ navigation }){
                 onSubmit={checkPinAndEnable}
                 onClose={() => setPinModalVisible(false)}
             />
+            
         </SafeAreaView>
     );
 }

@@ -20,6 +20,7 @@ export default function ProductDetailsModal({ visible, onClose, product, onProdu
   const handleOpen = () => setError("");
   const handleClose = () => { setError(""); onClose(); };
   const handleDownloadBarcode = async () => { setError(""); await downloadBarcode(); };
+  const handleAssignGroup = async () => { setError(""); await deleteProduct(); };
   const handleDeleteProduct = async () => { setError(""); await deleteProduct(); };
 
   return (
@@ -75,6 +76,15 @@ export default function ProductDetailsModal({ visible, onClose, product, onProdu
               <Text style={styles.actionText}>Save Barcode</Text>
             </TouchableOpacity>
 
+            {isAdmin &&
+                <TouchableOpacity style={styles.actionButtonAssign} onPress={handleAssignGroup} disabled={deleting}>
+                {deleting ? (
+                    <ActivityIndicator color={COLORS.textSuccess} size={20} />
+                ) : (
+                    <FontAwesome6 name="plus" size={24} color={COLORS.textSuccess} />
+                )}
+                </TouchableOpacity>
+            }
             {isAdmin &&
                 <TouchableOpacity style={styles.actionButtonDelete} onPress={handleDeleteProduct} disabled={deleting}>
                 {deleting ? (
@@ -190,6 +200,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.buttonPrimary,
   },
   actionButtonDelete: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.sm,
+    
+    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: COLORS.buttonSecondary,
+  },
+  actionButtonAssign: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.sm,

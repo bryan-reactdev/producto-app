@@ -7,7 +7,7 @@ import { getErrorMessage, retryWithBackoff } from '../utils/errorHandling';
 import ErrorMessage from './ErrorMessage';
 import * as Animatable from 'react-native-animatable';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.182:3000';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
 
 export default function GroupRenameModal({ visible, onClose, group, onRenamed }) {
   const [name, setName] = useState(group?.name || '');
