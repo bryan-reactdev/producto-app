@@ -2,18 +2,28 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ImageBackground, Text, TouchableOpacity, View } from "react-native";
 import styles from './HomeStyle'
 import { FontAwesome6 } from "@expo/vector-icons";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AdminPinModal from '../../components/AdminPinModal';
 import useAdmin from '../../hooks/useAdmin';
-import { BORDER_RADIUS, COLORS, SPACING } from "../../StyleConstants";
+import { SPACING } from "../../StyleConstants";
 import * as Animatable from 'react-native-animatable';
 import { LinearGradient } from 'expo-linear-gradient';
 import TransparentMenuButton from "../../components/TransparentMenuButton";
+import { Asset } from "expo-asset";
 
 
 export default function Home({ navigation }){
     const [pinModalVisible, setPinModalVisible] = useState(false);
     const { checkPinAndEnable, isAdmin, disableAdmin } = useAdmin();
+    const [bgLoaded, setBgLoaded] = useState(false);
+
+    useEffect(() => {
+        const loadBackground = async () => {
+            await Asset.loadAsync(require('../../../assets/images/background.webp'));
+            setBgLoaded(true);
+        };
+        loadBackground();
+    }, []);
 
     const handleAdminPress = () => {
         if (isAdmin) {
@@ -23,8 +33,11 @@ export default function Home({ navigation }){
         }
     };
 
+    if (!bgLoaded) return null;
+
     return (
-        <ImageBackground style={styles.container} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/background.jpg')} resizeMode="cover">
+        <View style={{ flex: 1, backgroundColor: '#000' }}> {/* solid bg container */}
+        <ImageBackground style={styles.container} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/background.webp')} resizeMode="cover">
         <View style={styles.blurOverlay}/>
 
         <SafeAreaView style={styles.container}>
@@ -36,25 +49,17 @@ export default function Home({ navigation }){
 
             <View style={styles.menuActions}>
                 {/* Scan */}
-                <TransparentMenuButton onPress={() => navigation.navigate('Scan')} icon={'expand'}>
-                    Scan a Product
-                </TransparentMenuButton>
+                <TransparentMenuButton onPress={() => navigation.navigate('Scan')} icon={'expand'} title={"Scan a Product"}/>
 
                 {/* Products */}
-                <TransparentMenuButton onPress={() => navigation.navigate('AllProducts')} icon={'box'}>
-                    View Products
-                </TransparentMenuButton>
+                <TransparentMenuButton onPress={() => navigation.navigate('AllProducts')} icon={'box'} title={"View Products"}/>
 
                 {/* Projects */}
-                <TransparentMenuButton onPress={() => navigation.navigate('Groups')} icon={'sheet-plastic'}>
-                    View Projects
-                </TransparentMenuButton>
+                <TransparentMenuButton onPress={() => navigation.navigate('Groups')} icon={'sheet-plastic'} title={"View Projects"}/>
 
                 {/* Add Products */}
                 {isAdmin &&
-                    <TransparentMenuButton onPress={() => navigation.navigate('AddProduct')} icon={'plus'}>
-                        Add a Product
-                    </TransparentMenuButton>
+                    <TransparentMenuButton onPress={() => navigation.navigate('AddProduct')} icon={'plus'} title={"Add a Product"}/>
                 }
 
                 <Animatable.View animation="slideInUp" delay={240} duration={650} easing="ease-out-cubic" style={styles.animatableWrapper}>
@@ -75,7 +80,6 @@ export default function Home({ navigation }){
                     </LinearGradient>
                     </TouchableOpacity>
                 </Animatable.View>
-
             </View>
 
             <AdminPinModal
@@ -86,5 +90,6 @@ export default function Home({ navigation }){
             
         </SafeAreaView>
         </ImageBackground>
+        </View>
     );
 }

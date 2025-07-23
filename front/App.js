@@ -33,7 +33,7 @@ export default function App(){
         <Stack.Navigator
           initialRouteName="Home"
           screenOptions={{
-            headerShown:false
+            headerShown:false,  presentation: "transparentModal" 
           }}
         >
           <Stack.Screen name = "Home" component={Home}/>

@@ -13,6 +13,7 @@ import useAdmin from '../../hooks/useAdmin'
 import { getErrorMessage, retryWithBackoff } from '../../utils/errorHandling'
 import * as Animatable from 'react-native-animatable';
 import { LinearGradient } from 'expo-linear-gradient'
+import { Asset } from 'expo-asset';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
 const CameraView = CameraModule.CameraView;
@@ -147,6 +148,15 @@ export default function Scan({navigation}){
     const [product, setProduct] = useState(null);
     const [error, setError] = useState('');
     const {isAdmin} = useAdmin();
+    const [bgLoaded, setBgLoaded] = useState(false);
+
+    useEffect(() => {
+        const loadBackground = async () => {
+            await Asset.loadAsync(require('../../../assets/images/ScanScreen/background.webp'));
+            setBgLoaded(true);
+        };
+        loadBackground();
+    }, []);
 
     useEffect(() => {
         (async () => {
@@ -189,13 +199,15 @@ export default function Scan({navigation}){
         setError('');
     };
 
+    if (!bgLoaded) return null;
+
     // --- Early returns for permission states ---
     if (hasPermission === null) return <PermissionRequesting />;
     if (hasPermission === false) return <PermissionDenied navigation={navigation} />;
 
     // --- Main render ---
     return (
-        <ImageBackground style={styles.screen} source={require('../../../assets/images/ScanScreen/background.jpg')} resizeMode="cover">
+        <ImageBackground style={styles.screen} source={require('../../../assets/images/ScanScreen/background.webp')} resizeMode="cover">
         <View style={styles.blurOverlay}/>
         
             <SafeAreaView style={styles.screen}>

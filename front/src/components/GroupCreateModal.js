@@ -81,6 +81,7 @@ export default function GroupCreateModal ({ visible, onClose, onCreate }){
                 <TextInput
                   style={styles.input}
                   placeholder="Enter group name"
+                  placeholderTextColor={COLORS.textDetail}
                   value={name}
                   onChangeText={setName}
                   autoFocus

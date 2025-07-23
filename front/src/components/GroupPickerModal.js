@@ -45,6 +45,7 @@ export default function GroupPickerModal({ visible, onClose, onSelect }) {
           <TextInput
             style={styles.searchBar}
             placeholder="Search groups..."
+            placeholderTextColor={COLORS.textDetail}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />

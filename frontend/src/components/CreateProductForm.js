@@ -75,7 +75,7 @@ export const CreateProductForm = ({
           style={styles.createFormTitle}
           entering={FadeInUp.delay(100)}
         >
-          Register New Product
+          Create New Product
         </Animated.Text>
         {/* Group Selection */}
         <View style={styles.groupPickerSection}>
@@ -105,7 +105,7 @@ export const CreateProductForm = ({
           placeholder="Product Name"
           value={newProduct.name}
           onChangeText={(text) => setNewProduct(prev => ({ ...prev, name: text }))}
-          placeholderTextColor={COLORS.muted}
+          placeholderTextColor={COLORS.textDetail}
           entering={FadeInUp.delay(300)}
         />
         
@@ -115,7 +115,7 @@ export const CreateProductForm = ({
           value={newProduct.price}
           onChangeText={(text) => setNewProduct(prev => ({ ...prev, price: text }))}
           keyboardType="numeric"
-          placeholderTextColor={COLORS.muted}
+          placeholderTextColor={COLORS.textDetail}
           entering={FadeInUp.delay(400)}
         />
         

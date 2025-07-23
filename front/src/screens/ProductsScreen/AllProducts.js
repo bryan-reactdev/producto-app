@@ -9,6 +9,7 @@ import useAdmin from "../../hooks/useAdmin";
 import ErrorMessage from '../../components/ErrorMessage';
 import * as Animatable from 'react-native-animatable';
 import { useCallback, useEffect, useState, useRef } from "react";
+import { Asset } from "expo-asset";
 import { useFocusEffect } from "@react-navigation/native";
 
 export default function AllProducts({ navigation }) {
@@ -16,6 +17,15 @@ export default function AllProducts({ navigation }) {
     const [localProducts, setLocalProducts] = useState([]);
     const { data: products, isPending: areProductsLoading, error: productsError, refetch: refetchProducts } = useFetch('products');
     const { isAdmin } = useAdmin();
+    const [bgLoaded, setBgLoaded] = useState(false);
+
+    useEffect(() => {
+        const loadBackground = async () => {
+            await Asset.loadAsync(require('../../../assets/images/background.webp'));
+            setBgLoaded(true);
+        };
+        loadBackground();
+    }, []);
 
     // Track if screen was focused before to avoid duplicate fetches on initial mount
     const hasBeenFocused = useRef(false);
@@ -46,12 +56,14 @@ export default function AllProducts({ navigation }) {
         setLocalProducts(prev => prev.filter(p => p.id !== deletedId));
     };
 
+    if (!bgLoaded) return null;
+
     if (areProductsLoading) {
         return (
             <ImageBackground
                 style={styles.screen}
                 imageStyle={{ left: -10, top: -10 }}
-                source={require('../../../assets/images/ProdutcScreen/background.jpg')}
+                source={require('../../../assets/images/ProdutcScreen/background.webp')}
                 resizeMode="cover"
             >
                 <View style={styles.blurOverlay} />
@@ -78,7 +90,7 @@ export default function AllProducts({ navigation }) {
             <ImageBackground
                 style={styles.screen}
                 imageStyle={{ left: -10, top: -10 }}
-                source={require('../../../assets/images/ProdutcScreen/background.jpg')}
+                source={require('../../../assets/images/ProdutcScreen/background.webp')}
                 resizeMode="cover"
             >
                 <View style={styles.blurOverlay} />
@@ -102,7 +114,7 @@ export default function AllProducts({ navigation }) {
         <ImageBackground
             style={styles.screen}
             imageStyle={{ left: -10, top: -10 }}
-            source={require('../../../assets/images/ProdutcScreen/background.jpg')}
+            source={require('../../../assets/images/ProdutcScreen/background.webp')}
             resizeMode="cover"
         >
             <View style={styles.blurOverlay} />

@@ -205,7 +205,7 @@ export default function ScanScreen() {
                       onPress={() => setShowCreateForm(true)}
                     >
                       <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                      <Text style={styles.createButtonText}>Register New Product</Text>
+                      <Text style={styles.createButtonText}>Create New Product</Text>
                     </TouchableOpacity>
                   )}
                   {error === 'Product not found' && !isAdminMode && (

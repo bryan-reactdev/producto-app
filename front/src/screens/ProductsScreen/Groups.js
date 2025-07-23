@@ -13,6 +13,7 @@ import GroupCreateModal from '../../components/GroupCreateModal';
 import GroupRenameModal from '../../components/GroupRenameModal';
 import useAdmin from "../../hooks/useAdmin";
 import ErrorMessage from '../../components/ErrorMessage';
+import { Asset } from "expo-asset";
 import * as Animatable from 'react-native-animatable';
 
 export default function Groups({ navigation }) {
@@ -30,6 +31,15 @@ export default function Groups({ navigation }) {
 
     const { isAdmin } = useAdmin();
     const isFocused = useIsFocused();
+    const [bgLoaded, setBgLoaded] = useState(false);
+
+    useEffect(() => {
+        const loadBackground = async () => {
+            await Asset.loadAsync(require('../../../assets/images/background.webp'));
+            setBgLoaded(true);
+        };
+        loadBackground();
+    }, []);
 
     // Track if screen has been focused once (to prevent duplicate refetch on mount)
     const hasBeenFocused = useRef(false);
@@ -120,7 +130,7 @@ export default function Groups({ navigation }) {
     };
 
     const renderLoading = (title) => (
-        <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+        <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.webp')} resizeMode="cover">
             <View style={styles.blurOverlay} />
             <SafeAreaView style={styles.screen}>
                 <CustomHeaderSearchBar
@@ -147,13 +157,15 @@ export default function Groups({ navigation }) {
         </ImageBackground>
     );
 
+    if (!bgLoaded) return null;
+
     if (selectedGroup) {
         if (areProductsLoading) {
             return renderLoading(selectedGroup.name);
         }
         if (productsError) {
             return (
-                <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+                <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.webp')} resizeMode="cover">
                     <View style={styles.blurOverlay} />
                     <SafeAreaView style={styles.screen}>
                         <CustomHeaderSearchBar
@@ -178,7 +190,7 @@ export default function Groups({ navigation }) {
 
     if (groupsError) {
         return (
-            <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+            <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.webp')} resizeMode="cover">
                 <View style={styles.blurOverlay} />
                 <SafeAreaView style={styles.screen}>
                     <CustomHeaderSearchBar
@@ -197,7 +209,7 @@ export default function Groups({ navigation }) {
     }
 
     return (
-        <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+        <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.webp')} resizeMode="cover">
             <View style={styles.blurOverlay} />
 
             <SafeAreaView style={styles.screen}>

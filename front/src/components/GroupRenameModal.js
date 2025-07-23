@@ -93,6 +93,7 @@ export default function GroupRenameModal({ visible, onClose, group, onRenamed })
                 <TextInput
                   style={styles.input}
                   placeholder="Enter new group name"
+                  placeholderTextColor={COLORS.textDetail}
                   value={name}
                   onChangeText={setName}
                   autoFocus

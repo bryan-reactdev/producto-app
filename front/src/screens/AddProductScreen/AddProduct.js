@@ -3,12 +3,13 @@ import CustomHeader from '../../components/CustomHeader'
 import styles from './AddProductStyle'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { FontAwesome6 } from '@expo/vector-icons'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import { getErrorMessage, retryWithBackoff } from '../../utils/errorHandling'
 import ErrorMessage from '../../components/ErrorMessage'
 import SuccessMessage from '../../components/SuccessMessage'
 import * as Animatable from 'react-native-animatable';
+import { Asset } from "expo-asset";
 import { COLORS } from '../../StyleConstants'
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
@@ -22,6 +23,15 @@ export default function AddProduct({navigation, route}){
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+    const [bgLoaded, setBgLoaded] = useState(false);
+
+    useEffect(() => {
+        const loadBackground = async () => {
+            await Asset.loadAsync(require('../../../assets/images/background.webp'));
+            setBgLoaded(true);
+        };
+        loadBackground();
+    }, []);
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -100,8 +110,10 @@ export default function AddProduct({navigation, route}){
         }
     };
 
+    if (!bgLoaded) return null;
+
     return(
-        <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+        <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.webp')} resizeMode="cover">
         <View style={styles.blurOverlay}/>
         <SafeAreaView style={styles.screen}>
             <CustomHeader nav={navigation} title='Add Product'/> 
@@ -171,7 +183,7 @@ export default function AddProduct({navigation, route}){
                     </TouchableOpacity>
                     
                     <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={loading}>
-                        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.registerButtonText}>Register</Text>}
+                        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.registerButtonText}>Create</Text>}
                     </TouchableOpacity>
                 </View>
             </ScrollView>

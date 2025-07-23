@@ -60,9 +60,9 @@ export const COLORS = {
     buttonSecondary: '#eceef6',
     buttonIconPrimary:'#fff',
 
-    inputPrimary: 'rgba(0, 0, 0, 0.5)',
-    inputSecondary: 'rgba(0, 0, 0, 0.35)',
+    inputPrimary: 'rgba(0, 0, 0, 0.75)',
+    inputSecondary: 'rgba(68, 68, 68, 0.35)',
 
     backgroundPrimary: 'rgba(0, 0, 0, 0.75)',
-    backgroundSecondary: 'rgba(0, 0, 0, 0.35)',
+    backgroundSecondary: 'rgba(68, 68, 68, 0.35)',
 }

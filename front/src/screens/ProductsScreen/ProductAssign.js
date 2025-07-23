@@ -8,6 +8,7 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import ErrorMessage from '../../components/ErrorMessage';
 import * as Animatable from 'react-native-animatable';
 import { useEffect, useState } from "react";
+import { Asset } from "expo-asset";
 import { getErrorMessage, retryWithBackoff } from "../../utils/errorHandling";
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
@@ -24,6 +25,15 @@ export default function ProductAssign({navigation, route}){
 
     const [assigning, setAssigning] = useState(false);
     const [error, setError] = useState(null);
+    const [bgLoaded, setBgLoaded] = useState(false);
+
+    useEffect(() => {
+        const loadBackground = async () => {
+            await Asset.loadAsync(require('../../../assets/images/background.webp'));
+            setBgLoaded(true);
+        };
+        loadBackground();
+    }, []);
 
     useEffect(() => {
         if (products && group) {
@@ -105,9 +115,11 @@ export default function ProductAssign({navigation, route}){
       );
     };
     
+    if (!bgLoaded) return null;
+    
     if (areProductsLoading || isGroupLoading || assigning){
         return(
-            <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+            <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.webp')} resizeMode="cover">
     
             <View style={styles.blurOverlay}/>
             
@@ -130,7 +142,7 @@ export default function ProductAssign({navigation, route}){
 
     if (productsError || groupError || error) {
         return (
-            <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+            <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.webp')} resizeMode="cover">
     
             <View style={styles.blurOverlay}/>
             <SafeAreaView style={styles.screen}>
@@ -149,8 +161,11 @@ export default function ProductAssign({navigation, route}){
         );
     }
 
+    const filteredProducts = localProducts.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
     return(
-        <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+        <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.webp')} resizeMode="cover">
 
         <View style={styles.blurOverlay}/>
         <SafeAreaView style={styles.screen}>
@@ -164,7 +179,7 @@ export default function ProductAssign({navigation, route}){
 
             <View style={styles.container}>
                 <ScrollView style={[styles.listScrollView, selectedProducts.length > 0 && customStyle.listScrollView]} contentContainerStyle={{gap:8}}>
-                    {localProducts.map((product, index) => (
+                    {filteredProducts.map((product, index) => (
                         <Animatable.View
                             key={product.id}
                             animation="slideInUp"

@@ -47,6 +47,7 @@ export default function AdminPinModal({ visible, onSubmit, onClose }) {
               value={pin}
               onChangeText={setPin}
               placeholder="PIN"
+              placeholderTextColor={COLORS.textDetail}
               secureTextEntry
               keyboardType="number-pad"
               autoFocus

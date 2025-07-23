@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BORDER_RADIUS, BORDER_WIDTH, COLORS, FONT_SIZES, SPACING } from "../StyleConstants";
 
 
-export default function TransparentMenuButton({onPress, icon, children}){
+export default function TransparentMenuButton({onPress, icon, title}){
     return(
     <Animatable.View animation="slideInLeft" delay={60} duration={650} easing="ease-out-cubic" style={styles.animatableWrapper}>
         <TouchableOpacity style={styles.menuButton} onPress={onPress}>
@@ -16,7 +16,7 @@ export default function TransparentMenuButton({onPress, icon, children}){
             style={{width:'100%', height:'100%', alignItems:'center', justifyContent:'center'}}
             >
                 <FontAwesome6 style={styles.menuButtonIcon} name={icon} size={32} color={'#000'}/>
-                <Text style={styles.menuButtonText}>{children}</Text>
+                <Text style={styles.menuButtonText}>{title}</Text>
 
             </LinearGradient>
         </TouchableOpacity>
