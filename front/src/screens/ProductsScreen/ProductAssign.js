@@ -1,15 +1,14 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomHeaderSearchBar from "../../components/CustomHeaderSearchBar";
-import { Text, View, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from "react-native";
+import { Text, View, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert, ImageBackground } from "react-native";
 import styles from './ProductsStyle'
 import ProductRow from "../../components/ProductRow";
 import useFetch from "../../hooks/useFetch";
 import { FontAwesome6 } from '@expo/vector-icons';
 import ErrorMessage from '../../components/ErrorMessage';
 import * as Animatable from 'react-native-animatable';
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getErrorMessage, retryWithBackoff } from "../../utils/errorHandling";
-import { useFocusEffect } from "@react-navigation/native";
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
 
@@ -20,10 +19,23 @@ export default function ProductAssign({navigation, route}){
     const [localProducts, setLocalProducts] = useState([]);
 
     const {data: products, isPending: areProductsLoading, error: productsError, refetch: refetchProducts} = useFetch('products');
+    const {data: group, isPending: isGroupLoading, error: groupError, refetch: refetchGroup} = useFetch(`groups/${passedGroup.id}`);
     const [selectedProducts, setSelectedProducts] = useState([]);
 
     const [assigning, setAssigning] = useState(false);
     const [error, setError] = useState(null);
+
+    useEffect(() => {
+        if (products && group) {
+          // Filter products to only those NOT in group.products
+          const filtered = products.filter(p => 
+            !group.products?.some(gp => gp.id === p.id)
+          );
+          setLocalProducts(filtered);
+        } else {
+          setLocalProducts([]);
+        }
+      }, [products, group]);
 
     const handleSelect = (selectedProductId) => {
         setSelectedProducts(prevSelected => {
@@ -83,7 +95,7 @@ export default function ProductAssign({navigation, route}){
                 Alert.alert(`Succesfully assigned ${selectedProducts.length} products to group: ` + passedGroup.name)
                 navigation.goBack();
               } catch (e) {
-                Alert.alert(getErrorMessage(e))
+                setError(getErrorMessage(e))
               } finally {
                 setAssigning(false);
               }
@@ -92,57 +104,55 @@ export default function ProductAssign({navigation, route}){
         ]
       );
     };
-
-    useFocusEffect(
-        useCallback(() => {
-          if (products && passedGroup) {
-            const filtered = products.filter(p => {
-              return !passedGroup.products.some(gp => gp.id === p.id);
-            });
-            setLocalProducts(filtered);
-          }
-        }, [products, passedGroup])
-      );
-
-    // --- Shared loading component ---
-    const renderLoading = () => (
-        <SafeAreaView style={styles.screen}>
-            <CustomHeaderSearchBar 
-                nav={navigation}
-                title={"Products"}
-                searchValue={searchQuery}
-                onSearchChange={setSearchQuery}
-                onBackPress={() => { navigation.goBack(); } }
-            />
+    
+    if (areProductsLoading || isGroupLoading || assigning){
+        return(
+            <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+    
+            <View style={styles.blurOverlay}/>
             
-            <View style={styles.container}>
-                <ActivityIndicator size="large" style={{ marginTop: 32 }} />
-            </View>
-        </SafeAreaView>
-    );
-
-    if (areProductsLoading){
-        return renderLoading();
-    }
-
-    if (productsError) {
-        return (
             <SafeAreaView style={styles.screen}>
                 <CustomHeaderSearchBar 
                     nav={navigation}
-                    title={selectedGroup.name}
+                    title={"Products"}
                     searchValue={searchQuery}
                     onSearchChange={setSearchQuery}
-                    onBackPress={() => setSelectedGroup(null)}
+                    onBackPress={() => { navigation.goBack(); } }
                 />
+                
                 <View style={styles.container}>
-                    <ErrorMessage message={productsError} onRetry={refetchProducts} />
+                    <ActivityIndicator size="large" style={{ marginTop: 32 }} />
                 </View>
             </SafeAreaView>
+            </ImageBackground>
+        );
+    }
+
+    if (productsError || groupError || error) {
+        return (
+            <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+    
+            <View style={styles.blurOverlay}/>
+            <SafeAreaView style={styles.screen}>
+                <CustomHeaderSearchBar 
+                    nav={navigation}
+                    title={"Products"}
+                    searchValue={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onBackPress={() => navigation.goBack()}
+                />
+                <View style={styles.container}>
+                    <ErrorMessage message={productsError || groupError || error} onRetry={() => {refetchProducts(); refetchGroup();}} />
+                </View>
+            </SafeAreaView>
+            </ImageBackground>
         );
     }
 
     return(
+        <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+
+        <View style={styles.blurOverlay}/>
         <SafeAreaView style={styles.screen}>
             <CustomHeaderSearchBar 
                 nav={navigation} 
@@ -184,6 +194,7 @@ export default function ProductAssign({navigation, route}){
                 </Animatable.View>
             }
         </SafeAreaView>
+        </ImageBackground>
     )
 }
 

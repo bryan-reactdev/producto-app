@@ -5,45 +5,53 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function useFetch(endpoint) {
   const [data, setData] = useState(null);
-  const [isPending, setIsPending] = useState(true);
+  const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(null);
 
-  // We keep a ref so that when component unmounts we ignore setting state
   const isMounted = useRef(true);
 
-  // The actual fetch logic as a function that returns a Promise
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback(async () => {
+    if (!endpoint || endpoint.includes('undefined')) {
+      setData(null);
+      setIsPending(false);
+      setError(null);
+      return;
+    }
+
     setIsPending(true);
     setError(null);
 
-    return retryWithBackoff(() => fetch(`${API_URL}/api/${endpoint}`))
-      .then(async (res) => {
-        if (!res.ok) {
-          let errMsg = res.statusText;
-          try {
-            const errJson = await res.json();
-            if (errJson && errJson.message) errMsg = errJson.message;
-          } catch {}
-          throw new Error(errMsg || `Request failed with status ${res.status}`);
+    try {
+      const res = await retryWithBackoff(() => fetch(`${API_URL}/api/${endpoint}`));
+      if (!res.ok) {
+        let errMsg = res.statusText || `Request failed with status ${res.status}`;
+        try {
+          const errJson = await res.json();
+          if (errJson?.message) errMsg = errJson.message;
+        } catch {
+          // ignore JSON parse error
         }
-        return res.json();
-      })
-      .then((data) => {
-        if (!isMounted.current) return;
-        setData(data);
-        setIsPending(false);
-        setError(null);
-        return data;  // resolve with data
-      })
-      .catch((err) => {
-        if (!isMounted.current) return;
-        setIsPending(false);
-        setError(getErrorMessage(err));
-        throw err; // re-throw to allow caller to catch
-      });
+        console.warn(`[useFetch] Fetch error: ${errMsg}`);
+        throw new Error(errMsg);
+      }
+
+      const responseData = await res.json();
+
+      if (!isMounted.current) return;
+      setData(responseData);
+      setIsPending(false);
+      setError(null);
+
+      return responseData;
+    } catch (err) {
+      if (!isMounted.current) return;
+      setIsPending(false);
+      setError(getErrorMessage(err));
+      console.error('[useFetch] Fetch error:', err);
+      throw err;
+    }
   }, [endpoint]);
 
-  // Initial fetch on mount or endpoint change
   useEffect(() => {
     isMounted.current = true;
     fetchData();
@@ -52,10 +60,7 @@ export default function useFetch(endpoint) {
     };
   }, [fetchData]);
 
-  // refetch function exposed to caller, returns Promise!
-  const refetch = useCallback(() => {
-    return fetchData();
-  }, [fetchData]);
+  const refetch = useCallback(() => fetchData(), [fetchData]);
 
   return { data, isPending, error, refetch };
 }

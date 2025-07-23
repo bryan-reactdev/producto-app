@@ -14,13 +14,28 @@ exports.getAllProductGroups = async (req, res) => {
   }
 };
 
-exports.getProductsByGroupId = async (req, res) => {
+exports.getGroupByIdWithProducts = async (req, res) => {
   try {
     const groupId = req.params.id;
+
+    const [groupRows] = await require('../config/database').execute(
+      'SELECT * FROM product_group WHERE id = ?',
+      [groupId]
+    );
+
+    if (groupRows.length === 0) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    const group = groupRows[0];
     const products = await ProductGroupMembership.getProductsByGroupId(groupId);
-    res.json(products);
+
+    group.products = products;
+
+    res.status(200).json(group);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch products for this group' });
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch group data' });
   }
 };
 

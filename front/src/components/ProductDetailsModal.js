@@ -45,7 +45,7 @@ export default function ProductDetailsModal({ visible, onClose, product, onProdu
           onResponderStart={e => e.stopPropagation && e.stopPropagation()}
         >
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-            <FontAwesome6 style={styles.closeButtonIcon} name="xmark" size={24} color={COLORS.textPrimary} />
+            <FontAwesome6 style={styles.closeButtonIcon} name="xmark" size={24} color={COLORS.textPrimaryContrast} />
           </TouchableOpacity>
 
           <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -60,7 +60,7 @@ export default function ProductDetailsModal({ visible, onClose, product, onProdu
             <Text style={styles.price}>${product.price}</Text>
 
             <View style={styles.barcodeRow}>
-              <FontAwesome6 name="barcode" size={16} color={COLORS.textSecondary} />
+              <FontAwesome6 name="barcode" size={16} color={COLORS.textDetail} />
               <Text style={styles.barcode}>{product.barcode}</Text>
             </View>
             {error ? <ErrorMessage message={error} style={{ marginTop: 12 }} /> : null}
@@ -76,15 +76,6 @@ export default function ProductDetailsModal({ visible, onClose, product, onProdu
               <Text style={styles.actionText}>Save Barcode</Text>
             </TouchableOpacity>
 
-            {isAdmin &&
-                <TouchableOpacity style={styles.actionButtonAssign} onPress={handleAssignGroup} disabled={deleting}>
-                {deleting ? (
-                    <ActivityIndicator color={COLORS.textSuccess} size={20} />
-                ) : (
-                    <FontAwesome6 name="plus" size={24} color={COLORS.textSuccess} />
-                )}
-                </TouchableOpacity>
-            }
             {isAdmin &&
                 <TouchableOpacity style={styles.actionButtonDelete} onPress={handleDeleteProduct} disabled={deleting}>
                 {deleting ? (
@@ -163,7 +154,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
     fontFamily: 'secondary-bold',
     fontSize: FONT_SIZES.lg,
-    color: COLORS.textPrimary,
+    color: COLORS.textPrimaryContrast,
   },
   price: {
     fontFamily: 'secondary-regular',
@@ -178,7 +169,7 @@ const styles = StyleSheet.create({
   barcode: {
     fontFamily: 'secondary-regular',
     fontSize: FONT_SIZES.sm,
-    color: COLORS.textSecondary,
+    color: COLORS.textDetail,
     marginLeft: SPACING.xs,
   },
   actionsRow: {
@@ -218,7 +209,8 @@ const styles = StyleSheet.create({
   actionText: {
     fontFamily: 'secondary-regular',
     fontSize: FONT_SIZES.base,
-    color: COLORS.textPrimaryContrast,
+
+    color: COLORS.textPrimary,
     marginLeft: SPACING.xs,
   },
 }); 

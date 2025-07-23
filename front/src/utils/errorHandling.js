@@ -74,6 +74,9 @@ export const getErrorMessage = (error) => {
   if (errorMessage.includes('Request failed with status 500')) {
     return 'There was an Internal Server Error.';
   }
+  if (errorMessage.includes('Request failed with status 429')) {
+    return 'You made too many requests in the last few minutes. Try again later.';
+  }
   if (errorMessage.toLowerCase().includes('failed to connect to')) {
     return 'Could not connect to the server. Please ensure the backend is running and reachable.';
   }

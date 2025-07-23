@@ -1,8 +1,12 @@
-// front/src/components/AdminPinModal.js
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
-import { SPACING, BORDER_RADIUS, COLORS } from '../StyleConstants';
+import {
+  Modal, View, Text, TextInput,
+  StyleSheet, TouchableOpacity
+} from 'react-native';
 import * as Animatable from 'react-native-animatable';
+import { SPACING, BORDER_RADIUS, COLORS } from '../StyleConstants';
+import styles from '../screens/AddProductScreen/AddProductStyle';
+import ErrorMessage from './ErrorMessage';
 
 export default function AdminPinModal({ visible, onSubmit, onClose }) {
   const [pin, setPin] = useState('');
@@ -27,32 +31,42 @@ export default function AdminPinModal({ visible, onSubmit, onClose }) {
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
+      <View style={modalStyles.overlay}>
         <Animatable.View
           animation="fadeInUp"
           duration={650}
           delay={40}
-          style={styles.modalContent}
+          style={modalStyles.modalCard}
           onStartShouldSetResponder={() => true}
           onResponderStart={e => e.stopPropagation && e.stopPropagation()}
         >
-          <Text style={styles.title}>Enter Admin PIN</Text>
-          <TextInput
-            style={styles.input}
-            value={pin}
-            onChangeText={setPin}
-            placeholder="PIN"
-            secureTextEntry
-            keyboardType="number-pad"
-            autoFocus
-          />
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.button} onPress={handleClose}>
-              <Text style={styles.buttonText}>Cancel</Text>
+          <Text style={styles.inputLabel}>Enter Admin PIN</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={pin}
+              onChangeText={setPin}
+              placeholder="PIN"
+              secureTextEntry
+              keyboardType="number-pad"
+              autoFocus
+            />
+          </View>
+          {error && <ErrorMessage message={error} style={{ marginBottom: 8 }} />}
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleClose}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Submit</Text>
+
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleSubmit}
+            >
+              <Text style={styles.registerButtonText}>Submit</Text>
             </TouchableOpacity>
           </View>
         </Animatable.View>
@@ -61,60 +75,23 @@ export default function AdminPinModal({ visible, onSubmit, onClose }) {
   );
 }
 
-const styles = StyleSheet.create({
+const modalStyles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalContent: {
-    width: 300,
-    backgroundColor: COLORS.backgroundPrimary || '#fff',
-    borderRadius: BORDER_RADIUS.base || 12,
-    padding: SPACING.lg || 24,
+  modalCard: {
+    width: '90%',
+    backgroundColor: COLORS.backgroundPrimary,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.lg,
     alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
-  modal: {
-    width: 300,
-    backgroundColor: COLORS.backgroundPrimary || '#fff',
-    borderRadius: BORDER_RADIUS.base || 12,
-    padding: SPACING.lg || 24,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    marginBottom: SPACING.md || 16,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-  },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: COLORS.borderPrimary || '#ccc',
-    borderRadius: BORDER_RADIUS.sm || 8,
-    padding: SPACING.sm || 8,
-    marginBottom: SPACING.sm || 8,
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  error: {
-    color: COLORS.textDelete || 'red',
-    marginBottom: SPACING.sm || 8,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: SPACING.sm || 8,
-  },
-  button: {
-    backgroundColor: COLORS.buttonPrimary || '#007AFF',
-    borderRadius: BORDER_RADIUS.sm || 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginHorizontal: 4,
-  },
-  buttonText: {
-    color: COLORS.textPrimaryContrast || '#fff',
-    fontWeight: 'bold',
-  },
-}); 
+});

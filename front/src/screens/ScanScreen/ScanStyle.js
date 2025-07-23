@@ -2,11 +2,14 @@ import { StyleSheet} from 'react-native';
 import { BORDER_RADIUS, BORDER_WIDTH, COLORS, FONT_SIZES, SIZING, SPACING } from '../../StyleConstants';
 
 export default StyleSheet.create({
+    blurOverlay:{
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        zIndex: 0,
+    },
     screen:{
         display:'flex',
         flex:1,
-
-        backgroundColor:COLORS.backgroundPrimary,
     },
     container:{
         flex:1,
@@ -25,42 +28,49 @@ export default StyleSheet.create({
         alignItems:'center',
         justifyContent:'center',
         
-        padding:SPACING.xxs,
+        padding:SIZING.sm,
 
-        borderWidth:BORDER_WIDTH.sm,
-        borderRadius:BORDER_RADIUS.xl,
-        
-        borderColor:COLORS.borderSecondary,
-        backgroundColor:COLORS.backgroundSecondary,
+        borderWidth: BORDER_WIDTH.base,
+        borderRadius: BORDER_RADIUS.xl,
+        borderBottomWidth: BORDER_WIDTH.sm,
+      
+        borderTopColor: '#b4b5b7',
+        borderLeftColor: '#a1a2a4',
+        borderRightColor: '#a1a2a4',
+        borderBottomColor: '#7a7b7c',
+
+        backgroundColor:COLORS.backgroundPrimary,
     },
     scannerContainer:{
         display:'flex',
-        height:'90%',
-        width:'90%',
-
+        height:'100%',
+        width:'100%',
+        
         alignItems:'center',
         justifyContent:'center',
-
+        
         padding:SIZING.sm,
-
-        borderWidth:BORDER_WIDTH.sm,
+        
+        borderWidth:BORDER_WIDTH.base,
         borderRadius:BORDER_RADIUS.xxl,
+        
+        borderColor:COLORS.borderSecondary,
+        backgroundColor:COLORS.backgroundSecondary,
 
-        borderColor:COLORS.borderPrimary,
-        backgroundColor: COLORS.inputPrimary,
+        overflow: 'hidden',
     },
     scannerContainerCamera:{
         width:'90%',
         height:'90%',
-
-        borderRadius:BORDER_RADIUS.base,
     },
     scannerContainerText:{
         marginTop:'auto',
         includeFontPadding: false,
+
         fontFamily:'secondary-regular',
         fontSize:FONT_SIZES.base,
-        color: COLORS.textPrimary,
+        
+        color: COLORS.textPrimaryContrast,
     },
     productContainer: {
         flex: 1,

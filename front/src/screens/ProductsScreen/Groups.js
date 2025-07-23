@@ -1,8 +1,8 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomHeaderSearchBar from "../../components/CustomHeaderSearchBar";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import { Text, View, BackHandler, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { Text, View, BackHandler, ScrollView, TouchableOpacity, ActivityIndicator, Alert, ImageBackground } from "react-native";
 import styles from './ProductsStyle'
 import GroupRow from "../../components/GroupRow";
 import ProductRow from "../../components/ProductRow";
@@ -15,63 +15,69 @@ import useAdmin from "../../hooks/useAdmin";
 import ErrorMessage from '../../components/ErrorMessage';
 import * as Animatable from 'react-native-animatable';
 
-export default function Groups({navigation}){
-    // --- Group Stuff ---
-    const { groups, areGroupsLoading, groupsError, refetch } = useGroups();
+export default function Groups({ navigation }) {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
-
-    const {data: fetchedProducts, isPending: areProductsLoading, error: productsError, refetch: refetchProducts} = useFetch(`groups/${selectedGroup?.id}`);
+    
+    const { groups, areGroupsLoading, groupsError, refetch } = useGroups();
+    const { data: fetchedGroupData, isPending: areProductsLoading, error: productsError, refetch: refetchProducts } = useFetch(selectedGroup ? `groups/${selectedGroup.id}` : null);
     const [products, setProducts] = useState([]);
 
-    // Modal state
     const [modalVisible, setModalVisible] = useState(false);
     const [renameModalVisible, setRenameModalVisible] = useState(false);
     const [groupToRename, setGroupToRename] = useState(null);
     const [deletingGroupId, setDeletingGroupId] = useState(null);
 
-    const {isAdmin} = useAdmin();
+    const { isAdmin } = useAdmin();
     const isFocused = useIsFocused();
+
+    // Track if screen has been focused once (to prevent duplicate refetch on mount)
+    const hasBeenFocused = useRef(false);
 
     // Sync local products state with fetched data
     useEffect(() => {
-        if (fetchedProducts) setProducts(fetchedProducts);
-    }, [fetchedProducts]);
+        if (fetchedGroupData) {
+            // fetchedGroupData is the whole group object, products inside it
+            setProducts(Array.isArray(fetchedGroupData.products) ? fetchedGroupData.products : []);
+        } else {
+            setProducts([]);
+        }
+    }, [fetchedGroupData]);
 
-    // Refetch products when screen regains focus and a group is selected
+    // Refetch products & groups when screen regains focus and a group is selected
     useFocusEffect(
         useCallback(() => {
-            if (selectedGroup && refetchProducts && refetch) {
-                refetchProducts();
+            if (!selectedGroup) return;
 
-                refetch().then(() => {
-                    const updated = groups?.find(g => g.id === selectedGroup.id);
-                    if (updated) setSelectedGroup(updated);
-                  });
+            if (hasBeenFocused.current) {
+                refetchProducts && refetchProducts();
+                refetch && refetch();
+            } else {
+                hasBeenFocused.current = true;
             }
-        }, [refetchProducts])
+        }, [selectedGroup, refetchProducts, refetch])
     );
 
-    // Handle back button press
+    // Back button handler to deselect group first
     const handleBackPress = useCallback(() => {
         if (selectedGroup) {
             setSelectedGroup(null);
-            return true;
+            hasBeenFocused.current = false;
+            return true; // prevent default back action
         }
-        return false;
+        return false; // allow back action
     }, [selectedGroup]);
 
     useEffect(() => {
         if (!isFocused) return;
-        const backHandler = BackHandler.addEventListener(
-            'hardwareBackPress',
-            handleBackPress
-        );
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {
             if (selectedGroup) {
                 e.preventDefault();
                 setSelectedGroup(null);
+                hasBeenFocused.current = false;
             }
         });
 
@@ -81,135 +87,141 @@ export default function Groups({navigation}){
         };
     }, [navigation, handleBackPress, selectedGroup, isFocused]);
 
-    // Filtered lists
     const filteredGroups = groups ? groups.filter(g => g.name.toLowerCase().includes(searchQuery.toLowerCase())) : [];
     const filteredProducts = products ? products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())) : [];
 
-    // Optimistic update handler
     const handleProductDeleted = (deletedId) => {
         setProducts(prev => prev.filter(p => p.id !== deletedId));
-        if (refetchProducts) refetchProducts();
+        refetchProducts && refetchProducts();
     };
 
-    // --- Group creation handler ---
-    // Optionally, refresh groups after creation
-    // If useGroups exposes a refetch, call it here. Otherwise, rely on re-render or manual refresh.
     const handleGroupCreated = () => {
-        if (refetch) refetch();
+        refetch && refetch();
     };
 
     const handleDeleteGroup = async (group) => {
-      setDeletingGroupId(group.id);
-      try {
-        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000'}/api/groups/${group.id}`, {
-          method: 'DELETE',
-        });
-        if (!res.ok) {
-          Alert.alert('Error', 'Failed to delete group.');
-        } else {
-          if (refetch) refetch();
+        setDeletingGroupId(group.id);
+        try {
+            const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000'}/api/groups/${group.id}`, {
+                method: 'DELETE',
+            });
+            if (!res.ok) {
+                Alert.alert('Error', 'Failed to delete group.');
+            } else {
+                refetch && refetch();
+                setSelectedGroup(null);
+                hasBeenFocused.current = false;
+            }
+        } catch (e) {
+            Alert.alert('Error', 'Failed to delete group.');
+        } finally {
+            setDeletingGroupId(null);
         }
-      } catch (e) {
-        Alert.alert('Error', 'Failed to delete group.');
-      } finally {
-        setDeletingGroupId(null);
-      }
     };
 
-    // --- Shared loading component ---
     const renderLoading = (title) => (
-        <SafeAreaView style={styles.screen}>
-            <CustomHeaderSearchBar 
-                nav={navigation}
-                title={title}
-                searchValue={searchQuery}
-                onSearchChange={setSearchQuery}
-                onBackPress={() => {
-                    if (selectedGroup) {
-                        setSelectedGroup(null);
-                        setSearchQuery("");
-                    } else {
-                        navigation.goBack();
-                    }
-                }}
-            />
-            <View style={styles.container}>
-                <ActivityIndicator size="large" style={{ marginTop: 32 }} />
-            </View>
-        </SafeAreaView>
+        <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+            <View style={styles.blurOverlay} />
+            <SafeAreaView style={styles.screen}>
+                <CustomHeaderSearchBar
+                    nav={navigation}
+                    title={title}
+                    searchValue={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onBackPress={() => {
+                        if (selectedGroup) {
+                            setSelectedGroup(null);
+                            hasBeenFocused.current = false;
+                            setSearchQuery("");
+                        } else {
+                            navigation.goBack();
+                        }
+                    }}
+                />
+                <View style={styles.container}>
+                    <ScrollView style={styles.listScrollView} contentContainerStyle={{ gap: 8 }}>
+                        <ActivityIndicator size="large" style={{ marginTop: 32 }} />
+                    </ScrollView>
+                </View>
+            </SafeAreaView>
+        </ImageBackground>
     );
 
-    // --- Product error/empty handling ---
     if (selectedGroup) {
         if (areProductsLoading) {
             return renderLoading(selectedGroup.name);
         }
         if (productsError) {
             return (
-                <SafeAreaView style={styles.screen}>
-                    <CustomHeaderSearchBar 
-                        nav={navigation}
-                        title={selectedGroup.name}
-                        searchValue={searchQuery}
-                        onSearchChange={setSearchQuery}
-                        onBackPress={() => setSelectedGroup(null)}
-                    />
-                    <View style={styles.container}>
-                        <ErrorMessage message={productsError} onRetry={refetchProducts} />
-                    </View>
-                </SafeAreaView>
+                <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+                    <View style={styles.blurOverlay} />
+                    <SafeAreaView style={styles.screen}>
+                        <CustomHeaderSearchBar
+                            nav={navigation}
+                            title={selectedGroup.name}
+                            searchValue={searchQuery}
+                            onSearchChange={setSearchQuery}
+                            onBackPress={() => {setSelectedGroup(null); hasBeenFocused.current = false;}}
+                        />
+                        <View style={styles.container}>
+                            <ErrorMessage message={productsError} onRetry={refetchProducts} />
+                        </View>
+                    </SafeAreaView>
+                </ImageBackground>
             );
         }
     }
 
-    // --- Group loading handling ---
     if (areGroupsLoading) {
-        return renderLoading('GROUPS');
+        return renderLoading(!selectedGroup ? 'PROJECTS' : selectedGroup.name);
     }
 
     if (groupsError) {
         return (
-            <SafeAreaView style={styles.screen}>
-                <CustomHeaderSearchBar 
-                    nav={navigation} 
-                    title="PROJECTS"
-                    searchValue={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    onBackPress={() => navigation.goBack()}
-                />
-                <View style={styles.container}>
-                    <ErrorMessage message={groupsError} onRetry={refetch} />
-                </View>
-            </SafeAreaView>
+            <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+                <View style={styles.blurOverlay} />
+                <SafeAreaView style={styles.screen}>
+                    <CustomHeaderSearchBar
+                        nav={navigation}
+                        title="PROJECTS"
+                        searchValue={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        onBackPress={() => navigation.goBack()}
+                    />
+                    <View style={styles.container}>
+                        <ErrorMessage message={groupsError} onRetry={refetch} />
+                    </View>
+                </SafeAreaView>
+            </ImageBackground>
         );
     }
 
-    return(
-        <SafeAreaView style={styles.screen}>
-            <CustomHeaderSearchBar 
-                nav={navigation} 
-                title={!selectedGroup
-                    ? "PROJECTS"
-                    : selectedGroup.name
-                }
-                searchValue={searchQuery}
-                onSearchChange={setSearchQuery}
-                onBackPress={() => {
-                    if (selectedGroup) {
-                        setSelectedGroup(null);
-                        setSearchQuery("");
-                    } else {
-                        navigation.goBack();
-                    }
-                }}
-            />
+    return (
+        <ImageBackground style={styles.screen} imageStyle={{ left: -10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+            <View style={styles.blurOverlay} />
 
-            <View style={styles.container}>
-                <ScrollView style={styles.listScrollView} contentContainerStyle={{gap:8}}>
-                    {selectedGroup == null
-                        ? (
+            <SafeAreaView style={styles.screen}>
+                <CustomHeaderSearchBar
+                    nav={navigation}
+                    title={!selectedGroup ? "PROJECTS" : selectedGroup.name}
+                    searchValue={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onBackPress={() => {
+                        if (selectedGroup) {
+                            setSelectedGroup(null);
+                            hasBeenFocused.current = false;
+                            setSearchQuery("");
+                        } else {
+                            navigation.goBack();
+                        }
+                    }}
+                />
+
+                <View style={styles.container}>
+                    <ScrollView style={styles.listScrollView} contentContainerStyle={{ gap: 8 }}>
+                        {selectedGroup == null ? (
                             <>
-                                {isAdmin && 
+                                {isAdmin &&
                                     <TouchableOpacity style={styles.createGroupButton} onPress={() => setModalVisible(true)}>
                                         <FontAwesome6 style={styles.createGroupButtonIcon} name="plus" size={24} color={'black'} />
                                         <Text style={styles.createGroupButtonLabel}>
@@ -234,8 +246,7 @@ export default function Groups({navigation}){
                                     </Animatable.View>
                                 ))}
                             </>
-                        )
-                        : (
+                        ) : (
                             <>
                                 {isAdmin &&
                                     <TouchableOpacity style={styles.createGroupButton} onPress={() => navigation.navigate('ProductAssign', { selectedGroup })}>
@@ -263,22 +274,22 @@ export default function Groups({navigation}){
                                     </Animatable.View>
                                 ))}
                             </>
-                        )
-                    }
-                </ScrollView>
-            </View>
-            
-            <GroupCreateModal
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                onCreate={handleGroupCreated}
-            />
-            <GroupRenameModal
-                visible={renameModalVisible}
-                onClose={() => setRenameModalVisible(false)}
-                group={groupToRename}
-                onRenamed={() => { setRenameModalVisible(false); setGroupToRename(null); if (refetch) refetch(); }}
-            />
-        </SafeAreaView>
-    )
+                        )}
+                    </ScrollView>
+                </View>
+
+                <GroupCreateModal
+                    visible={modalVisible}
+                    onClose={() => setModalVisible(false)}
+                    onCreate={handleGroupCreated}
+                />
+                <GroupRenameModal
+                    visible={renameModalVisible}
+                    onClose={() => setRenameModalVisible(false)}
+                    group={groupToRename}
+                    onRenamed={() => { setRenameModalVisible(false); setGroupToRename(null); if (refetch) refetch(); }}
+                />
+            </SafeAreaView>
+        </ImageBackground>
+    );
 }

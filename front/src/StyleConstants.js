@@ -44,22 +44,25 @@ export const BORDER_RADIUS = {
 };  
 
 export const COLORS = {
-    textPrimary: '#000',
-    textSecondary: '#7B7B7B',
+    textPrimary: '#fff',
+    textSecondary: '#555',
+    textDetail: '#6A6A6A',
     textPrimaryContrast: '#fff',
     textSave: '#3182ce',
-    textDelete: '#D40501',
-    textSuccess: '#005015',
+    textDelete: '#b30000',
+    textSuccess: '#16803a',
 
     borderPrimary: '#D9D9D9',     
     borderSecondary: '#DDDDDD', 
 
-    buttonPrimary: '#000',
-    buttonSecondary: '#f1f1f1',
+    buttonTextPrimary: '#fff',
+    buttonPrimary: '#3b46f1',
+    buttonSecondary: '#eceef6',
+    buttonIconPrimary:'#fff',
 
-    inputPrimary: '#fff',
-    inputSecondary: '#f1f1f1',
+    inputPrimary: 'rgba(0, 0, 0, 0.5)',
+    inputSecondary: 'rgba(0, 0, 0, 0.35)',
 
-    backgroundPrimary: '#fff',
-    backgroundSecondary: '#eceef6',
+    backgroundPrimary: 'rgba(0, 0, 0, 0.75)',
+    backgroundSecondary: 'rgba(0, 0, 0, 0.35)',
 }

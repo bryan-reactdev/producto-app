@@ -1,4 +1,4 @@
-import { Image, Text, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator, Alert } from 'react-native'
+import { Image, Text, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator, Alert, ImageBackground } from 'react-native'
 import CustomHeader from '../../components/CustomHeader'
 import styles from './AddProductStyle'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -9,6 +9,7 @@ import { getErrorMessage, retryWithBackoff } from '../../utils/errorHandling'
 import ErrorMessage from '../../components/ErrorMessage'
 import SuccessMessage from '../../components/SuccessMessage'
 import * as Animatable from 'react-native-animatable';
+import { COLORS } from '../../StyleConstants'
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
 
@@ -100,6 +101,8 @@ export default function AddProduct({navigation, route}){
     };
 
     return(
+        <ImageBackground style={styles.screen} imageStyle={{ left:-10, top: -10 }} source={require('../../../assets/images/ProdutcScreen/background.jpg')} resizeMode="cover">
+        <View style={styles.blurOverlay}/>
         <SafeAreaView style={styles.screen}>
             <CustomHeader nav={navigation} title='Add Product'/> 
 
@@ -124,6 +127,7 @@ export default function AddProduct({navigation, route}){
                     <TextInput
                         style={styles.input}
                         placeholder="Enter product name"
+                        placeholderTextColor={COLORS.textDetail}
                         value={name}
                         onChangeText={setName}
                     />
@@ -135,6 +139,7 @@ export default function AddProduct({navigation, route}){
                     <TextInput
                         style={styles.input}
                         placeholder="Enter price"
+                        placeholderTextColor={COLORS.textDetail}
                         keyboardType="numeric"
                         value={price}
                         onChangeText={setPrice}
@@ -171,5 +176,6 @@ export default function AddProduct({navigation, route}){
                 </View>
             </ScrollView>
         </SafeAreaView>
+        </ImageBackground>
     )
 }

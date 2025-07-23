@@ -1,5 +1,5 @@
 // front/src/screens/ScanScreen/Scan.js
-import { View, Text, Button, ActivityIndicator, TouchableOpacity } from 'react-native'
+import { View, Text, Button, ActivityIndicator, TouchableOpacity, ImageBackground } from 'react-native'
 import styles from './ScanStyle'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CustomHeader from '../../components/CustomHeader'
@@ -12,6 +12,7 @@ import { FontAwesome6 } from '@expo/vector-icons'
 import useAdmin from '../../hooks/useAdmin'
 import { getErrorMessage, retryWithBackoff } from '../../utils/errorHandling'
 import * as Animatable from 'react-native-animatable';
+import { LinearGradient } from 'expo-linear-gradient'
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://31.220.51.108:3000';
 const CameraView = CameraModule.CameraView;
@@ -41,7 +42,12 @@ function PermissionDenied({navigation}) {
 // --- Section: Render Components ---
 function CameraSection({ onBarCodeScanned }) {
     return (
-        <View style={styles.scannerContainerWrapper}>
+        <LinearGradient
+            colors={['rgba(184, 184, 184, 0.2)', 'rgba(198, 199, 203, 0.0)']}
+            start={{ x: 0.1, y: 1.5 }}
+            end={{ x: 0, y: 0 }}
+            style={styles.scannerContainerWrapper}
+        >
             <View style={styles.scannerContainer}>
                 <CameraView
                     style={styles.scannerContainerCamera}
@@ -49,8 +55,8 @@ function CameraSection({ onBarCodeScanned }) {
                     cameraId="0"
                     barcodeScannerSettings={{ barcodeTypes: ['code128'] }}
                     onBarcodeScanned={onBarCodeScanned}
-                />
-                <Animatable.View
+                    />
+                    <Animatable.View
                     animation="zoomIn"
                     duration={400}
                     delay={40}
@@ -59,7 +65,7 @@ function CameraSection({ onBarCodeScanned }) {
                 />
                 <Text style={styles.scannerContainerText}>Align the barcode within frame</Text>
             </View>
-        </View>
+        </LinearGradient>
     );
 }
 function LoadingSection() {
@@ -73,7 +79,6 @@ function LoadingSection() {
     );
 }
 function ProductSection({ product, onScanAgain, onProductDeleted }) {
-    console.log('Product passed to ProductRow:', product); // Debug log
     return (
         <View style={styles.productContainer}>
             <Animatable.View
@@ -190,33 +195,37 @@ export default function Scan({navigation}){
 
     // --- Main render ---
     return (
-        <SafeAreaView style={styles.screen}>
-            <CustomHeader nav={navigation} title="Scan" />
-            <View style={styles.container}>
-                {!scanned && (
-                    <CameraSection onBarCodeScanned={handleBarCodeScanned} />
-                )}
-                {loading && <LoadingSection />}
-                {product && !loading && (
-                    <ProductSection
-                        product={product}
-                        onScanAgain={resetScan}
-                        onProductDeleted={() => setProduct(null)}
-                    />
-                )}
-                {error && !loading && !product && scanned && (
-                    <ErrorSection
-                        error={error}
-                        isAdmin={isAdmin}
-                        onRegister={() => navigation.navigate('AddProduct', { barcode })}
-                        onScanAgain={resetScan}
-                    />
-                )}
+        <ImageBackground style={styles.screen} source={require('../../../assets/images/ScanScreen/background.jpg')} resizeMode="cover">
+        <View style={styles.blurOverlay}/>
+        
+            <SafeAreaView style={styles.screen}>
+                <CustomHeader nav={navigation} title="Scan" />
+                <View style={styles.container}>
+                    {!scanned && (
+                        <CameraSection onBarCodeScanned={handleBarCodeScanned} />
+                    )}
+                    {loading && <LoadingSection />}
+                    {product && !loading && (
+                        <ProductSection
+                            product={product}
+                            onScanAgain={resetScan}
+                            onProductDeleted={() => setProduct(null)}
+                        />
+                    )}
+                    {error && !loading && !product && scanned && (
+                        <ErrorSection
+                            error={error}
+                            isAdmin={isAdmin}
+                            onRegister={() => navigation.navigate('AddProduct', { barcode })}
+                            onScanAgain={resetScan}
+                        />
+                    )}
 
-                {scanned && !loading && !product && !error && (
-                    <ScanAgainSection onScanAgain={resetScan} />
-                )}
-            </View>
-        </SafeAreaView>
+                    {scanned && !loading && !product && !error && (
+                        <ScanAgainSection onScanAgain={resetScan} />
+                    )}
+                </View>
+            </SafeAreaView>
+        </ImageBackground>
     );
 }

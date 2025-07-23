@@ -53,7 +53,7 @@ export default function ProductRow({image, name, price, barcode, id, onProductDe
                 <Text style={styles.productRowPrice}>${price}</Text>
                 
                 <View style={styles.productRowBarcodeContainer}>
-                    <FontAwesome6 style={styles.productRowBarcodeIcon} name="barcode" size={12} color={COLORS.textSecondary}/>
+                    <FontAwesome6 style={styles.productRowBarcodeIcon} name="barcode" size={12} color={COLORS.textDetail}/>
                     <Text
                         style={styles.productRowBarcode}
                         numberOfLines={1}
@@ -87,6 +87,7 @@ export default function ProductRow({image, name, price, barcode, id, onProductDe
                 {error ? <ErrorMessage message={error} style={{ marginBottom: 8 }} /> : null}
             </View>
         </TouchableOpacity>
+
         <ProductDetailsModal
             visible={modalVisible}
             onClose={handleClose}
@@ -157,13 +158,14 @@ const styles = StyleSheet.create({
     productRowName:{
         includeFontPadding: false,
         fontFamily:'secondary-bold',
-        color: COLORS.textPrimary,
+
+        color: COLORS.textPrimaryContrast,
     },
     productRowGroup:{
         includeFontPadding: false,
         fontFamily:'secondary-regular',
 
-        color:COLORS.textSecondary,
+        color:COLORS.textDetail,
     },
     productRowPrice:{
         includeFontPadding: false,
@@ -189,7 +191,7 @@ const styles = StyleSheet.create({
         fontFamily:'secondary-regular',
         fontSize: FONT_SIZES.xs,
 
-        color:COLORS.textSecondary,
+        color:COLORS.textDetail,
     },
     productRowActions:{
         flexDirection:'row',
@@ -226,7 +228,7 @@ const styles = StyleSheet.create({
     },
     productRowActionsButtonIcon:{
         fontSize: FONT_SIZES.base,
-        color:COLORS.textPrimaryContrast,
+        color:COLORS.textPrimary,
     },
     productRowActionsButtonIconDelete:{
         fontSize: FONT_SIZES.base,
@@ -237,7 +239,7 @@ const styles = StyleSheet.create({
         fontFamily:'secondary-regular',
         fontSize: FONT_SIZES.xs,
 
-        color:COLORS.textPrimaryContrast,
+        color:COLORS.textPrimary,
     },
 
     loading:{

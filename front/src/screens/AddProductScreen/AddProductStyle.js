@@ -2,11 +2,14 @@ import { StyleSheet } from "react-native";
 import { BORDER_RADIUS, BORDER_WIDTH, COLORS, FONT_SIZES, SIZING, SPACING } from "../../StyleConstants";
 
 export default StyleSheet.create({
+    blurOverlay:{
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        zIndex: 0,
+    },
     screen:{
         display:'flex',
         flex:1,
-
-        backgroundColor:COLORS.backgroundPrimary,
     },
     container:{
         display:'flex',
@@ -65,7 +68,7 @@ export default StyleSheet.create({
 
         fontSize:FONT_SIZES.base,
         fontFamily:'secondary-bold',
-        color: COLORS.textPrimary,
+        color: COLORS.textPrimaryContrast,
     },
 
     inputContainer: {
@@ -77,7 +80,7 @@ export default StyleSheet.create({
         includeFontPadding:false,
         fontFamily:'secondary-regular',
         fontSize:FONT_SIZES.base,
-        color: COLORS.textPrimary,
+        color: COLORS.textPrimaryContrast,
     },
     input: {
         width: '100%',
@@ -94,7 +97,7 @@ export default StyleSheet.create({
         fontFamily:'secondary-regular',
         fontSize:FONT_SIZES.base,
 
-        color:COLORS.textPrimary,
+        color:COLORS.textPrimaryContrast,
         borderColor:COLORS.borderSecondary,
         backgroundColor:COLORS.inputSecondary,
     },
@@ -110,13 +113,14 @@ export default StyleSheet.create({
         fontSize: FONT_SIZES.base,
         fontFamily: 'secondary-regular',
         
-        color: COLORS.textPrimary,
+        color: COLORS.textPrimaryContrast,
     },
     
     buttonRow:{
         display:'flex',
         
         flexDirection:'row',
+        marginTop:SPACING.sm,
 
         gap:SPACING.sm,
     },
@@ -158,6 +162,6 @@ export default StyleSheet.create({
         includeFontPadding:false,
         fontFamily:'secondary-regular',
 
-        color:COLORS.textPrimaryContrast,
+        color:COLORS.textPrimary,
     }
 })

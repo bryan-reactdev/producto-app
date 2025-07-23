@@ -2,11 +2,14 @@ import { StyleSheet } from "react-native";
 import { BORDER_RADIUS, BORDER_WIDTH, COLORS, FONT_SIZES, SPACING } from "../../StyleConstants";
 
 export default StyleSheet.create({
+    blurOverlay:{
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        zIndex: 0,
+    },
     screen:{
         display:'flex',
         flex:1,
-
-        backgroundColor:COLORS.backgroundPrimary,
     },
     header:{
         display:'flex',
@@ -28,19 +31,18 @@ export default StyleSheet.create({
         marginBottom:15,
         color: COLORS.textPrimary,
     },
-    listScrollView:{
-        display:'flex',
-        width:'90%',
-        height:'75%',
-
-        padding:SPACING.sm,
-        
-        borderWidth:BORDER_WIDTH.sm,
-        borderRadius:BORDER_RADIUS.xxl,
-        
-        borderColor:COLORS.borderSecondary,
-        backgroundColor:COLORS.backgroundSecondary,
-    },  
+    listScrollView: {
+        display: 'flex',
+        width: '90%',
+        height: '75%',
+      
+        padding: SPACING.sm,
+      
+        borderRadius: BORDER_RADIUS.xl,
+        borderBottomWidth: BORDER_WIDTH.sm,
+      
+        backgroundColor: COLORS.backgroundSecondary,
+    },
     createGroupButton:{
         display:'flex',
         width:'100%',
@@ -62,6 +64,7 @@ export default StyleSheet.create({
     createGroupButtonIcon:{
         includeFontPadding: false,
         fontSize: FONT_SIZES.lg,
+
         color: COLORS.textPrimary,
     },
     createGroupButtonLabel:{
@@ -69,5 +72,7 @@ export default StyleSheet.create({
 
         fontSize:FONT_SIZES.base,
         fontFamily:'secondary-bold',
+
+        color:COLORS.textPrimary,
     },
 })

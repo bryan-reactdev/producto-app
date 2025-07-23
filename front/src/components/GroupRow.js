@@ -25,7 +25,7 @@ export default function GroupRow({name, count, onPress, hideIcon, onRename, onDe
                                 if (onRename) onRename();
                             }}
                         >
-                            <FontAwesome6 name="pen" size={FONT_SIZES.xs} color={COLORS.textPrimaryContrast} />
+                        <FontAwesome6 name="pen" size={FONT_SIZES.xs} color={COLORS.buttonIconPrimary} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.deleteButton}
@@ -45,7 +45,7 @@ export default function GroupRow({name, count, onPress, hideIcon, onRename, onDe
                         </TouchableOpacity>
                         </>
                     )}
-                    <FontAwesome6 style={styles.groupRowArrow} name="angle-right" size={FONT_SIZES.lg} color={COLORS.textPrimary}/>
+                    <FontAwesome6 style={styles.groupRowArrow} name="angle-right" size={FONT_SIZES.lg} color={COLORS.textPrimaryContrast}/>
                 </View>
             )}
         </TouchableOpacity>
@@ -71,6 +71,8 @@ const styles = StyleSheet.create({
     },
     groupRowIcon:{
         fontSize:FONT_SIZES.xxl,
+
+        color:COLORS.textPrimaryContrast,
     },
     groupRowDetails:{
         display:'flex',
@@ -78,41 +80,50 @@ const styles = StyleSheet.create({
     groupRowName:{
         includeFontPadding: false,
         fontFamily:'secondary-bold',
-        color: COLORS.textPrimary,
+
+        color:COLORS.textPrimaryContrast,
     },
     groupRowCount:{
         includeFontPadding: false,
 
         fontFamily:'secondary-regular',
-        color:COLORS.textSecondary,
+        color:COLORS.textDetail,
     },
     groupRowActions: {
         flexDirection: 'row',
         alignItems: 'center',
         marginLeft: 'auto',
-        gap: 8,
+        gap: SPACING.xs,
     },
     groupRowArrow:{
         display:'flex',
     },
     renameButton: {
         display: 'flex',
+
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
+
         padding: SIZING.xxs,
+        marginLeft: SPACING.xxs,
+
         borderRadius: BORDER_RADIUS.xl,
+
         backgroundColor: COLORS.buttonPrimary,
-        marginLeft: 4,
     },
     deleteButton: {
         display: 'flex',
+
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
+
         padding: SIZING.xxs,
+        marginLeft: SPACING.xxs,
+
         borderRadius: BORDER_RADIUS.xl,
+
         backgroundColor: COLORS.buttonSecondary,
-        marginLeft: 4,
     },
 })

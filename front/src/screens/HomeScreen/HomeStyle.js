@@ -2,10 +2,13 @@ import { StyleSheet} from 'react-native';
 import { BORDER_RADIUS, BORDER_WIDTH, COLORS, FONT_SIZES, SPACING } from '../../StyleConstants';
 
 export default StyleSheet.create({
+    blurOverlay:{
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        zIndex: 0,
+    },
     container:{
         flex: 1,
-
-        backgroundColor:COLORS.backgroundPrimary,
     },
     header:{
         width:'100%',
@@ -22,37 +25,10 @@ export default StyleSheet.create({
     menuActions:{
         flex:1,
         display:'flex',
+
         alignItems:'center',
 
         gap:SPACING.lg,
-
-    },
-    menuButton:{
-        display:'flex',
-        alignItems:'center',
-        width:'80%',
-        height:100,
-        
-        borderWidth: BORDER_WIDTH.sm,
-        borderRadius: BORDER_RADIUS.base,
-
-        borderColor: COLORS.borderSecondary,
-        backgroundColor:COLORS.backgroundPrimary,
-    },
-    menuButtonIcon:{
-        marginTop:SPACING.base,
-
-        fontSize:FONT_SIZES.xxl,
-    },
-    menuButtonText:{
-        includeFontPadding: false,
-
-        marginTop:SPACING.xs,
-        marginBottom:SPACING.base,
-        
-        fontFamily:'primary-medium',
-        fontSize:FONT_SIZES.sm,
-        color: COLORS.textPrimary,
     },
     menuAdminButton:{
         display:'flex',
@@ -64,26 +40,27 @@ export default StyleSheet.create({
 
         gap:SPACING.xs,
 
-        borderWidth: BORDER_WIDTH.sm,
-        borderRadius: BORDER_RADIUS.base,
+        borderWidth: BORDER_WIDTH.base,
+        borderRadius: BORDER_RADIUS.xl,
+        borderBottomWidth:BORDER_WIDTH.sm,
 
-        borderColor: COLORS.borderSecondary,
-        backgroundColor:COLORS.backgroundPrimary,
+        borderTopColor: '#b4b5b7',
+        borderLeftColor: '#a1a2a4',
+        borderRightColor: '#a1a2a4',
+        borderBottomColor: '#7a7b7c',
     },
     menuAdminButtonIcon:{
         fontSize:FONT_SIZES.base,
-        color: COLORS.textPrimary,
+        color: COLORS.buttonIconPrimary,
     },
     menuAdminButtonText:{
+        includeFontPadding: false,
+
         marginTop:SPACING.base,
         marginBottom:SPACING.base,
-        
+
         fontFamily:'primary-medium',
         fontSize:FONT_SIZES.sm,
-        color: COLORS.textPrimary,
-    },
-    animatableWrapper: {
-        width: '100%',
-        alignItems: 'center',
+        color: COLORS.buttonTextPrimary,
     },
 });
